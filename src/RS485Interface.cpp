@@ -1,6 +1,4 @@
-#include "hardware_interface_manager/RS485Interface.h"
-// #include "RS485Interface.h"
-// #include "RS485Interface.h"
+#include "hardware_interface_manager/RS485Interface.hpp"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -50,7 +48,7 @@ namespace sonia_hw_interface
         _publisherMotorFeedback = this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
         _dropperServer = this->create_service<sonia_common_ros2::srv::DropperService>("actuate_dropper", std::bind(&RS485Interface::processDropperRequest, this, _1, _2));
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Interface::pollKillMission, this));
-        _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Interface::pollPower, this));
+        // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Interface::pollPower, this));
 
         _publisherThrusterPwm = this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
         _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10, std::bind(&RS485Interface::PwmCallback, this, _1), sub_opt);
@@ -76,17 +74,20 @@ namespace sonia_hw_interface
     void RS485Interface::pollKillMission()
     {
         // Transmit request to get kill status
-        mutex_.lock();
-        _rs485Connection.Transmit(_GET_KILL_STATUS_MSG, 8);
-        mutex_.unlock();
+        queueObject msg;
+        msg.cmd = _Cmd::CMD_KILL;
+        msg.slave = _SlaveId::SLAVE_KILLMISSION;
+        _writerQueue.push_back(msg);
+        // _rs485Connection.Transmit(_GET_KILL_STATUS_MSG, 8);
         // Wait for a short duration to allow for processing
         //std::this_thread::sleep_for(std::chrono::milliseconds(300));
         // Transmit request to get mission status
-        mutex_.lock();
-        _rs485Connection.Transmit(_GET_MISSION_STATUS_MSG, 8);
-        mutex_.unlock();
-        
+        msg.cmd = _Cmd::CMD_MISSION;
+        msg.slave = _SlaveId::SLAVE_KILLMISSION;
+        _writerQueue.push_back(msg);
+        // _rs485Connection.Transmit(_GET_MISSION_STATUS_MSG, 8);
     }
+
     void RS485Interface::pollPower()
     {
         mutex_.lock();
@@ -313,7 +314,7 @@ namespace sonia_hw_interface
         // close the thread.
         while (_thread_control)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
             // pause the thread.
             while (!_writerQueue.empty())
             {
@@ -339,9 +340,7 @@ namespace sonia_hw_interface
                 data[data_size - 3] = std::get<0>(checksum);
                 data[data_size - 2] = std::get<1>(checksum);
                 data[data_size - 1] = _END_BYTE;
-                mutex_.lock();
                 _rs485Connection.Transmit(data, data_size);
-                mutex_.unlock();
                 delete data;
             }
         }
@@ -351,7 +350,7 @@ namespace sonia_hw_interface
     {
         while (_thread_control)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(300));
+            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
             // read until the start there or the queue is empty
             while (!_parseQueue.empty())
             {

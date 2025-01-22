@@ -28,8 +28,9 @@ install(
 )
 
 install(TARGETS
-${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+  ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs)
 
