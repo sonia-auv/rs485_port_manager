@@ -1,14 +1,14 @@
 
 #pragma once
 
-#include <queue>
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
+#include <queue>
 
 template <typename T>
 class SharedQueue
 {
-public:
+    public:
     SharedQueue();
     ~SharedQueue();
 
@@ -24,17 +24,19 @@ public:
     unsigned long size();
     bool empty();
 
-private:
+    private:
     std::deque<T> queue_;
     std::mutex mutex_;
     std::condition_variable cond_;
 };
 
 template <typename T>
-SharedQueue<T>::SharedQueue(){}
+SharedQueue<T>::SharedQueue()
+{}
 
 template <typename T>
-SharedQueue<T>::~SharedQueue(){}
+SharedQueue<T>::~SharedQueue()
+{}
 
 template <typename T>
 T& SharedQueue<T>::front()
@@ -78,9 +80,8 @@ void SharedQueue<T>::push_back(const T& item)
 {
     std::unique_lock<std::mutex> mlock(mutex_);
     queue_.push_back(item);
-    mlock.unlock();     // unlock before notificiation to minimize mutex con
-    cond_.notify_one(); // notify one waiting thread
-
+    mlock.unlock();      // unlock before notificiation to minimize mutex con
+    cond_.notify_one();  // notify one waiting thread
 }
 
 template <typename T>
@@ -88,9 +89,8 @@ void SharedQueue<T>::push_back(T&& item)
 {
     std::unique_lock<std::mutex> mlock(mutex_);
     queue_.push_back(std::move(item));
-    mlock.unlock();     // unlock before notificiation to minimize mutex con
-    cond_.notify_one(); // notify one waiting thread
-
+    mlock.unlock();      // unlock before notificiation to minimize mutex con
+    cond_.notify_one();  // notify one waiting thread
 }
 
 template <typename T>
@@ -99,7 +99,7 @@ unsigned long SharedQueue<T>::size()
     std::unique_lock<std::mutex> mlock(mutex_);
     unsigned long size = queue_.size();
     mlock.unlock(
-        
+
     );
     cond_.notify_one();
     return size;

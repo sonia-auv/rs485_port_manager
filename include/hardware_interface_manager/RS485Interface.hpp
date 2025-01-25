@@ -22,7 +22,6 @@
 #include "sonia_common_ros2/srv/dropper_service.hpp"
 
 
-
 namespace sonia_hw_interface
 {
     /**
