@@ -1,10 +1,10 @@
-#include "hardware_interface_manager/RS485Interface.hpp"
+#include "rs485_port_manager/RS485Interface.hpp"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
 using namespace std::chrono_literals;
 
-namespace sonia_hw_interface
+namespace rs485_port_manager
 {
 
     RS485Interface::RS485Interface()
@@ -306,9 +306,9 @@ namespace sonia_hw_interface
         {
             // This sleep is needed... I DON'T KNOW WHY...
             // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            mutex_.lock();
+            // mutex_.lock();
             ssize_t str_len = _rs485Connection.ReadPackets(_DATA_READ_CHUNCK, data);
-            mutex_.unlock();
+            // mutex_.unlock();
 
             if (str_len != -1)
             {
