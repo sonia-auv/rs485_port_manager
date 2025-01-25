@@ -87,6 +87,7 @@ namespace rs485_port_manager
         msg.cmd = _Cmd::CMD_KILL;
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         _writerQueue.push_back(msg);
+        std::cout << "kill request sent" << std::endl;
         // _rs485Connection.Transmit(_GET_KILL_STATUS_MSG, 8);
         // Wait for a short duration to allow for processing
         // std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -95,6 +96,7 @@ namespace rs485_port_manager
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         _writerQueue.push_back(msg);
         // _rs485Connection.Transmit(_GET_MISSION_STATUS_MSG, 8);
+        std::cout << "mission request sent" << std::endl;
     }
 
     void RS485Interface::pollPower()
