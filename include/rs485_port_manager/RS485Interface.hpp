@@ -33,6 +33,17 @@ namespace rs485_port_manager
         uint8_t slave;
         uint8_t cmd;
         std::vector<uint8_t> data;
+        void printTram()
+        {
+            printf("%x ", slave);
+            printf("%x ", cmd);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                printf("%x ", data[i]);
+            }
+            
+            printf("\n");
+        }
     };
 
     class RS485Interface : public rclcpp::Node
@@ -212,8 +223,6 @@ namespace rs485_port_manager
         rclcpp::CallbackGroup::SharedPtr group1;
         SharedQueue<queueObject> _writerQueue;
         SharedQueue<uint8_t> _parseQueue;
-        std::mutex mutex_;
-
 
         bool _thread_control;
 

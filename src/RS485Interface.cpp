@@ -13,7 +13,7 @@ namespace rs485_port_manager
         try
         {
             auv = std::getenv("AUV");
-            if (strcmp(auv, "AUV8") || strcmp(auv, "LOCAL"))
+            if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
             {
                 ESC_SLAVE = _SlaveId::SLAVE_PWR_MANAGEMENT;
                 RCLCPP_INFO(this->get_logger(), "Slave on AUV8");
@@ -22,7 +22,7 @@ namespace rs485_port_manager
             else
             {
                 ESC_SLAVE = _SlaveId::SLAVE_ESC;
-                std::cerr << "Slave on AUV7" << std::endl;
+                RCLCPP_INFO(this->get_logger(), "Slave on AUV7");
             }
         }
         catch (...)
@@ -82,32 +82,28 @@ namespace rs485_port_manager
 
     void RS485Interface::pollKillMission()
     {
-        // Transmit request to get kill status
         queueObject msg;
+        msg.data.push_back(0x00);
+
+        // Transmit request to get kill status
+        msg.slave = _SlaveId::SLAVE_KILLMISSION;
         msg.cmd = _Cmd::CMD_KILL;
-        msg.slave = _SlaveId::SLAVE_KILLMISSION;
         _writerQueue.push_back(msg);
-        std::cout << "kill request sent" << std::endl;
-        // _rs485Connection.Transmit(_GET_KILL_STATUS_MSG, 8);
-        // Wait for a short duration to allow for processing
-        // std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        
+        // Wait for a short duration to allow for processing... Embeded restriction
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
+        
         // Transmit request to get mission status
-        msg.cmd = _Cmd::CMD_MISSION;
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
+        msg.cmd = _Cmd::CMD_MISSION;
         _writerQueue.push_back(msg);
-        // _rs485Connection.Transmit(_GET_MISSION_STATUS_MSG, 8);
-        std::cout << "mission request sent" << std::endl;
     }
 
     void RS485Interface::pollPower()
     {
-        mutex_.lock();
         _rs485Connection.Transmit(_GET_POWER_MSG, 15);
-        mutex_.unlock();
-        // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        mutex_.lock();
+        std::this_thread::sleep_for(std::chrono::milliseconds(300));
         _rs485Connection.Transmit(_GET_FEEDBACK_MSG, 15);
-        mutex_.unlock();
     }
 
     std::tuple<uint8_t, uint8_t> RS485Interface::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
@@ -141,9 +137,9 @@ namespace rs485_port_manager
         // Construct the command packet
         const uint8_t dropper[8] = {_START_BYTE,   _SlaveId::SLAVE_IO,    _Cmd::CMD_IO_DROPPER_ACTION, 1,
                                     request->side, std::get<0>(checksum), std::get<1>(checksum),       _END_BYTE};
-        mutex_.lock();
+
         transmit_status = _rs485Connection.Transmit(dropper, 8);
-        mutex_.unlock();
+        
         response->result = transmit_status;
     }
 
@@ -288,7 +284,7 @@ namespace rs485_port_manager
                 break;
             case _Cmd::CMD_READ_MOTOR:
 
-                // if (motorData.size() !=nb_thruster)
+                // if (motorData.size() != nb_thruster)
                 //{
                 // std::cerr << "ERROR in the message. Dropping READ MOTOR packet" << std::endl;
                 //  return;
@@ -303,14 +299,14 @@ namespace rs485_port_manager
 
     void RS485Interface::readData()
     {
+    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+
         uint8_t data[_DATA_READ_CHUNCK];
         while (_thread_control)
         {
-            // This sleep is needed... I DON'T KNOW WHY...
-            // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-            // mutex_.lock();
+            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
+
             ssize_t str_len = _rs485Connection.ReadPackets(_DATA_READ_CHUNCK, data);
-            // mutex_.unlock();
 
             if (str_len != -1)
             {
@@ -332,8 +328,6 @@ namespace rs485_port_manager
             // pause the thread.
             while (!_writerQueue.empty())
             {
-                // std::this_thread::sleep_for(std::chrono::milliseconds(300));
-
                 queueObject msg = _writerQueue.get_n_pop_front();
                 const size_t data_size = msg.data.size() + 7;
                 uint8_t *data = new uint8_t[data_size];
@@ -403,6 +397,7 @@ namespace rs485_port_manager
                         switch (msg.slave)
                         {
                             case _SlaveId::SLAVE_KILLMISSION:
+
                                 switch (msg.cmd)
                                 {
                                     case _Cmd::CMD_KILL:
@@ -422,7 +417,14 @@ namespace rs485_port_manager
                             case _SlaveId::SLAVE_PWR_MANAGEMENT:
                                 processPowerManagement(msg.cmd, msg.data);
                                 break;
+                            case _SlaveId::SLAVE_PSU0:
+                            case _SlaveId::SLAVE_PSU1:
+                            case _SlaveId::SLAVE_PSU2:
+                            case _SlaveId::SLAVE_PSU3:
+                                // TODO
+                                break;
                             default:
+                                RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
                                 break;
                         }
                     }
