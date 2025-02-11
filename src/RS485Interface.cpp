@@ -299,13 +299,12 @@ namespace rs485_port_manager
 
     void RS485Interface::readData()
     {
-    std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        // Delay for port opening
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
         uint8_t data[_DATA_READ_CHUNCK];
         while (_thread_control)
         {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-
             ssize_t str_len = _rs485Connection.ReadPackets(_DATA_READ_CHUNCK, data);
 
             if (str_len != -1)
@@ -322,9 +321,7 @@ namespace rs485_port_manager
     {
         // close the thread.
         while (_thread_control)
-        {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
-            
+        {            
             // pause the thread.
             while (!_writerQueue.empty())
             {
@@ -358,7 +355,6 @@ namespace rs485_port_manager
     {
         while (_thread_control)
         {
-            std::this_thread::sleep_for(std::chrono::nanoseconds(1));
             // read until the start there or the queue is empty
             while (!_parseQueue.empty())
             {
