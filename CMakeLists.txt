@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(hardware_interface_manager)
+project(rs485_port_manager)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -28,8 +28,9 @@ install(
 )
 
 install(TARGETS
-${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME})
+  ${PROJECT_NAME}
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs)
 

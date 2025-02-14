@@ -1,28 +1,31 @@
 #pragma once
 
-#include <thread>
 #include <stdio.h>
+
 #include <functional>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <thread>
 #include <tuple>
 #include <vector>
-#include "rclcpp/rclcpp.hpp"
-#include "sonia_common_cpp/SerialConn.h"
-#include "sonia_common_ros2/msg/serial_message.hpp"
+
+#include "SharedQueue.hpp"
+#include "sonia_common_cpp/SerialConn.hpp"
+#include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
 #include "sonia_common_ros2/msg/motor_feedback.hpp"
 #include "sonia_common_ros2/msg/motor_power_messages.hpp"
-#include "sonia_common_ros2/msg/battery_power_messages.hpp"
-#include "sonia_common_ros2/srv/dropper_service.hpp"
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
-#include <std_srvs/srv/empty.hpp>
-#include <std_msgs/msg/bool.hpp>
-#include "SharedQueue.h"
+#include "sonia_common_ros2/msg/serial_message.hpp"
+#include "sonia_common_ros2/srv/dropper_service.hpp"
 
-namespace sonia_hw_interface
+
+namespace rs485_port_manager
 {
     /**
-     * @brief
+     * @brief Internal Queue Object
      *
      */
     struct queueObject
@@ -30,11 +33,22 @@ namespace sonia_hw_interface
         uint8_t slave;
         uint8_t cmd;
         std::vector<uint8_t> data;
+        void printTram()
+        {
+            printf("%x ", slave);
+            printf("%x ", cmd);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                printf("%x ", data[i]);
+            }
+            
+            printf("\n");
+        }
     };
 
     class RS485Interface : public rclcpp::Node
     {
-    public:
+        public:
         RS485Interface();
         ~RS485Interface();
 
@@ -50,22 +64,22 @@ namespace sonia_hw_interface
          */
         void Kill();
 
-    private:
+        private:
         /**
          * @brief Slave Ids
          *
          */
         enum _SlaveId : uint8_t
         {
-            SLAVE_PSU0 = 0, // AUV7 Only
-            SLAVE_PSU1 = 1, // AUV7 Only
-            SLAVE_PSU2 = 2, // AUV7 Only
-            SLAVE_PSU3 = 3, // AUV7 Only
+            SLAVE_PSU0 = 0,  // AUV7 Only
+            SLAVE_PSU1 = 1,  // AUV7 Only
+            SLAVE_PSU2 = 2,  // AUV7 Only
+            SLAVE_PSU3 = 3,  // AUV7 Only
             SLAVE_KILLMISSION = 4,
             SLAVE_ESC = 5,
             SLAVE_IO = 6,
             SLAVE_STATE_SCREEN = 7,
-            SLAVE_PWR_MANAGEMENT = 8, // AUV8 Only
+            SLAVE_PWR_MANAGEMENT = 8,  // AUV8 Only
         };
 
         /**
@@ -135,7 +149,8 @@ namespace sonia_hw_interface
          * @param request
          * @param response
          */
-        void processDropperRequest(const std::shared_ptr<sonia_common_ros2::srv::DropperService::Request> request, std::shared_ptr<sonia_common_ros2::srv::DropperService::Response> response);
+        void processDropperRequest(const std::shared_ptr<sonia_common_ros2::srv::DropperService::Request> request,
+                                   std::shared_ptr<sonia_common_ros2::srv::DropperService::Response> response);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
 
@@ -208,15 +223,12 @@ namespace sonia_hw_interface
         rclcpp::CallbackGroup::SharedPtr group1;
         SharedQueue<queueObject> _writerQueue;
         SharedQueue<uint8_t> _parseQueue;
-        std::mutex mutex_;
-        
 
         bool _thread_control;
 
         uint8_t ESC_SLAVE;
 
         const char *auv;
-        
     };
 
-}
+}  // namespace sonia_hw_interface
