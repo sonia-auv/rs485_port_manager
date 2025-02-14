@@ -6,7 +6,8 @@
       "args": {
           "USERNAME": "sonia",
           "GID": "1000",
-          "UID": "1000"
+          "UID": "1000",
+          "WS_DIR": "${localWorkspaceFolderBasename}"
       }
   },
   "customizations": {

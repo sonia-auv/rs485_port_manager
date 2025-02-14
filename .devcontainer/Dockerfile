@@ -3,6 +3,7 @@ FROM ros:humble-ros-base
 ARG USERNAME=sonia
 ARG UID=1000
 ARG GID=$UID
+ARG WS_DIR="name"
 
 # Install some dependencies packages
 RUN apt update -q && apt upgrade -q -y \
@@ -25,7 +26,7 @@ USER $USERNAME
 RUN mkdir -p /home/$USERNAME/ros2_sonia_ws/src
 WORKDIR /home/$USERNAME/ros2_sonia_ws/src/
 RUN git clone -b develop https://github.com/sonia-auv/sonia_common_ros2.git
-WORKDIR /home/$USERNAME/ros2_sonia_ws/src/hardware_interface_manager
+WORKDIR /home/$USERNAME/ros2_sonia_ws/src/$WS_DIR
 
 # Copy configuration files
 RUN echo 'source /opt/ros/'$ROS_DISTRO'/setup.bash' >> /home/$USERNAME/.bashrc \
