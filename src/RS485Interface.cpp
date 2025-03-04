@@ -54,8 +54,8 @@ namespace rs485_port_manager
             "/provider_power/battery_temperatures", 10);
         _publisherMotorFeedback =
             this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
-        _dropperServer = this->create_service<sonia_common_ros2::srv::DropperService>(
-            "actuate_dropper", std::bind(&RS485Interface::processDropperRequest, this, _1, _2));
+        _actuatorServer = this->create_service<sonia_common_ros2::srv::ActuatorService>(
+            "actuate_dropper", std::bind(&RS485Interface::processActuatorRequest, this, _1, _2));
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Interface::pollKillMission, this));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Interface::pollPower, this));
 
@@ -119,28 +119,45 @@ namespace rs485_port_manager
 
     void RS485Interface::Kill() { _thread_control = false; }
 
-    void RS485Interface::processDropperRequest(
-        const std::shared_ptr<sonia_common_ros2::srv::DropperService::Request> request,
-        std::shared_ptr<sonia_common_ros2::srv::DropperService::Response> response)
+    void RS485Interface::processActuatorRequest(
+        const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
+        std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response)
     {
         // Variables for transmission status and data vector
         ssize_t transmit_status;
         std::vector<uint8_t> data_vec;
+        std::tuple<uint8_t, uint8_t> checksum;
+        
 
         // Add dropper side to data vector
         data_vec.push_back(request->side);
 
-        // Calculate checksum for the command
-        std::tuple<uint8_t, uint8_t> checksum =
-            checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_DROPPER_ACTION, data_vec.size(), data_vec);
-
-        // Construct the command packet
-        const uint8_t dropper[8] = {_START_BYTE,   _SlaveId::SLAVE_IO,    _Cmd::CMD_IO_DROPPER_ACTION, 1,
-                                    request->side, std::get<0>(checksum), std::get<1>(checksum),       _END_BYTE};
-
-        transmit_status = _rs485Connection.Transmit(dropper, 8);
-        
-        response->result = transmit_status;
+        switch (request->element){
+            case  sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_DROPPER:
+            {
+                // Calculate checksum for the command
+                checksum = checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_DROPPER_ACTION, data_vec.size(), data_vec);
+                const uint8_t packet[8] = {_START_BYTE,   _SlaveId::SLAVE_IO,    _Cmd::CMD_IO_DROPPER_ACTION, 1,
+                            request->side, std::get<0>(checksum), std::get<1>(checksum), _END_BYTE};
+                transmit_status = _rs485Connection.Transmit(packet, 8);
+                response->success = true;
+                break;
+            }
+            case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_TORPEDO:
+            {
+                // Calculate checksum for the command
+                checksum = checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, data_vec.size(), data_vec);
+                const uint8_t packet[8] = {_START_BYTE, _SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, 1,  request->side, std::get<0>(checksum),
+                     std::get<1>(checksum), _END_BYTE};
+                response->success = true;
+                break;
+            }
+            default:
+                std::cerr << "ERROR in element. Unknown element" << std::endl;
+                response->success = false;
+                break;
+        }
+             
     }
 
     void RS485Interface::publishKill(bool status)

@@ -19,7 +19,7 @@
 #include "sonia_common_ros2/msg/motor_power_messages.hpp"
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
 #include "sonia_common_ros2/msg/serial_message.hpp"
-#include "sonia_common_ros2/srv/dropper_service.hpp"
+#include "sonia_common_ros2/srv/actuator_service.hpp"
 
 
 namespace rs485_port_manager
@@ -144,13 +144,13 @@ namespace rs485_port_manager
         void pollPower();
 
         /**
-         * @brief Processes a dropper service request.
+         * @brief Processes a actuator service request.
          *
          * @param request
          * @param response
          */
-        void processDropperRequest(const std::shared_ptr<sonia_common_ros2::srv::DropperService::Request> request,
-                                   std::shared_ptr<sonia_common_ros2::srv::DropperService::Response> response);
+        void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
+                                   std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
 
@@ -212,7 +212,7 @@ namespace rs485_port_manager
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
-        rclcpp::Service<sonia_common_ros2::srv::DropperService>::SharedPtr _dropperServer;
+        rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorServer;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
 
