@@ -212,7 +212,7 @@ namespace rs485_port_manager
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
-        rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorServer;
+        rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
 
