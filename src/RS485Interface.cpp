@@ -148,6 +148,7 @@ namespace rs485_port_manager
                 checksum = checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, data_vec.size(), data_vec);
                 const uint8_t packet[8] = {_START_BYTE, _SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, 1,  request->side, std::get<0>(checksum),
                      std::get<1>(checksum), _END_BYTE};
+                transmit_status = _rs485Connection.Transmit(packet, 8);
                 response->success = true;
                 break;
             }
@@ -155,8 +156,7 @@ namespace rs485_port_manager
                 std::cerr << "ERROR in element. Unknown element" << std::endl;
                 response->success = false;
                 break;
-        }
-             
+        }         
     }
 
     void RS485Interface::publishKill(bool status)
