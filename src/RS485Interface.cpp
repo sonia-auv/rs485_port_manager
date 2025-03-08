@@ -55,7 +55,7 @@ namespace rs485_port_manager
         _publisherMotorFeedback =
             this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
-            "/provider_actuator/do_actionr", std::bind(&RS485Interface::processActuatorRequest, this, _1, _2));
+            "/provider_actuator/do_action", std::bind(&RS485Interface::processActuatorRequest, this, _1, _2));
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Interface::pollKillMission, this));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Interface::pollPower, this));
 
