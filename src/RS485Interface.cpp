@@ -124,31 +124,23 @@ namespace rs485_port_manager
         std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response)
     {
         // Variables for transmission status and data vector
-        ssize_t transmit_status;
-        std::vector<uint8_t> data_vec;
-        std::tuple<uint8_t, uint8_t> checksum;
+        queueObject ser;
+        ser.slave=_SlaveId::SLAVE_IO;
         
-        // Add dropper side to data vector
-        data_vec.push_back(request->side);
-
         switch (request->element){
             case  sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_DROPPER:
             {
-                // Calculate checksum for the command
-                checksum = checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_DROPPER_ACTION, data_vec.size(), data_vec);
-                const uint8_t packet[8] = {_START_BYTE,   _SlaveId::SLAVE_IO,    _Cmd::CMD_IO_DROPPER_ACTION, 1,
-                            request->side, std::get<0>(checksum), std::get<1>(checksum), _END_BYTE};
-                transmit_status = _rs485Connection.Transmit(packet, 8);
+                ser.cmd=_Cmd::CMD_IO_DROPPER_ACTION;
+                ser.data.push_back(request->side);
+                _writerQueue.push_back(ser);
                 response->success = true;
                 break;
             }
             case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_TORPEDO:
             {
-                // Calculate checksum for the command
-                checksum = checkSum(_SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, data_vec.size(), data_vec);
-                const uint8_t packet[8] = {_START_BYTE, _SlaveId::SLAVE_IO, _Cmd::CMD_IO_TORPEDO_ACTION, 1,  request->side, std::get<0>(checksum),
-                     std::get<1>(checksum), _END_BYTE};
-                transmit_status = _rs485Connection.Transmit(packet, 8);
+                ser.cmd=_Cmd::CMD_IO_TORPEDO_ACTION;
+                ser.data.push_back(request->side);
+                _writerQueue.push_back(ser);
                 response->success = true;
                 break;
             }
