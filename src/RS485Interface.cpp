@@ -133,8 +133,8 @@ namespace rs485_port_manager
                 ser.cmd=_Cmd::CMD_IO_DROPPER_ACTION;
                 ser.data.push_back(request->side);
                 _writerQueue.push_back(ser);
-                std::unique_lock<std::mutex> lock(mtx);
-                cv.wait(lock);
+                //std::unique_lock<std::mutex> lock(mtx);
+                //cv.wait(lock);
                 response->success = true;
                 break;
             }
@@ -143,8 +143,8 @@ namespace rs485_port_manager
                 ser.cmd=_Cmd::CMD_IO_TORPEDO_ACTION;
                 ser.data.push_back(request->side);
                 _writerQueue.push_back(ser);
-                std::unique_lock<std::mutex> lock(mtx);
-                cv.wait(lock);
+                //std::unique_lock<std::mutex> lock(mtx);
+                //cv.wait(lock);
                 response->success = true;
                 break;
             }
@@ -425,7 +425,7 @@ namespace rs485_port_manager
                                 processPowerManagement(msg.cmd, msg.data);
                                 break;
                             case _SlaveId::SLAVE_IO:
-                                cv.notify_one();
+                                //cv.notify_one();
                                 break;
                             case _SlaveId::SLAVE_PSU0:
                             case _SlaveId::SLAVE_PSU1:
