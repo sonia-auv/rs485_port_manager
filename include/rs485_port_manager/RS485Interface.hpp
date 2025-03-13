@@ -216,6 +216,9 @@ namespace rs485_port_manager
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
 
+        std::condition_variable cv;
+        std::mutex mtx;
+
         std::thread _reader;
         std::thread _parser;
         std::thread _writer;

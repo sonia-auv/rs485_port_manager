@@ -133,6 +133,8 @@ namespace rs485_port_manager
                 ser.cmd=_Cmd::CMD_IO_DROPPER_ACTION;
                 ser.data.push_back(request->side);
                 _writerQueue.push_back(ser);
+                std::unique_lock<std::mutex> lock(mtx);
+                cv.wait(lock);
                 response->success = true;
                 break;
             }
@@ -141,6 +143,8 @@ namespace rs485_port_manager
                 ser.cmd=_Cmd::CMD_IO_TORPEDO_ACTION;
                 ser.data.push_back(request->side);
                 _writerQueue.push_back(ser);
+                std::unique_lock<std::mutex> lock(mtx);
+                cv.wait(lock);
                 response->success = true;
                 break;
             }
@@ -401,7 +405,6 @@ namespace rs485_port_manager
                         switch (msg.slave)
                         {
                             case _SlaveId::SLAVE_KILLMISSION:
-
                                 switch (msg.cmd)
                                 {
                                     case _Cmd::CMD_KILL:
@@ -421,11 +424,13 @@ namespace rs485_port_manager
                             case _SlaveId::SLAVE_PWR_MANAGEMENT:
                                 processPowerManagement(msg.cmd, msg.data);
                                 break;
+                            case _SlaveId::SLAVE_IO:
+                                cv.notify_one();
+                                break;
                             case _SlaveId::SLAVE_PSU0:
                             case _SlaveId::SLAVE_PSU1:
                             case _SlaveId::SLAVE_PSU2:
                             case _SlaveId::SLAVE_PSU3:
-                                // TODO
                                 break;
                             default:
                                 RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
