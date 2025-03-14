@@ -199,7 +199,6 @@ namespace rs485_port_manager
 
         sonia_common_cpp::SerialConn _rs485Connection;
 
-
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
@@ -215,9 +214,6 @@ namespace rs485_port_manager
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
-
-        std::condition_variable cv;
-        std::mutex mtx;
 
         std::thread _reader;
         std::thread _parser;
