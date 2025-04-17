@@ -10,7 +10,7 @@
 #include <tuple>
 #include <vector>
 
-#include "SharedQueue.hpp"
+#include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
@@ -46,11 +46,11 @@ namespace rs485_port_manager
         }
     };
 
-    class RS485Interface : public rclcpp::Node
+    class RS485Provider : public rclcpp::Node
     {
         public:
-        RS485Interface();
-        ~RS485Interface();
+        RS485Provider();
+        ~RS485Provider();
 
         /**
          * @brief Open designated internal serial port.
@@ -220,8 +220,8 @@ namespace rs485_port_manager
         std::thread _writer;
 
         rclcpp::CallbackGroup::SharedPtr group1;
-        SharedQueue<queueObject> _writerQueue;
-        SharedQueue<uint8_t> _parseQueue;
+        sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
+        sonia_common_cpp::SharedQueue<uint8_t> _parseQueue;
 
         bool _thread_control;
 

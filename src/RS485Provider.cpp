@@ -1,4 +1,4 @@
-#include "rs485_port_manager/RS485Interface.hpp"
+#include "rs485_port_manager/RS485Provider.hpp"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -7,7 +7,7 @@ using namespace std::chrono_literals;
 namespace rs485_port_manager
 {
 
-    RS485Interface::RS485Interface()
+    RS485Provider::RS485Provider()
         : Node("rs485_interface"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         try
@@ -34,9 +34,9 @@ namespace rs485_port_manager
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = group1;
 
-        _reader = std::thread(std::bind(&RS485Interface::readData, this));
-        _writer = std::thread(std::bind(&RS485Interface::writeData, this));
-        _parser = std::thread(std::bind(&RS485Interface::parseData, this));
+        _reader = std::thread(std::bind(&RS485Provider::readData, this));
+        _writer = std::thread(std::bind(&RS485Provider::writeData, this));
+        _parser = std::thread(std::bind(&RS485Provider::parseData, this));
         _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
         _publisherMission =
             this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
@@ -55,22 +55,22 @@ namespace rs485_port_manager
         _publisherMotorFeedback =
             this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
-            "/provider_actuator/do_action", std::bind(&RS485Interface::processActuatorRequest, this, _1, _2));
-        _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Interface::pollKillMission, this));
-        // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Interface::pollPower, this));
+            "/provider_actuator/do_action", std::bind(&RS485Provider::processActuatorRequest, this, _1, _2));
+        _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Provider::pollKillMission, this));
+        // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
 
         _publisherThrusterPwm =
             this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
         _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
-            "/provider_thruster/thruster_pwm", 10, std::bind(&RS485Interface::PwmCallback, this, _1), sub_opt);
+            "/provider_thruster/thruster_pwm", 10, std::bind(&RS485Provider::PwmCallback, this, _1), sub_opt);
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
-            "/provider_power/activate_motors", 10, std::bind(&RS485Interface::EnableDisableMotors, this, _1), sub_opt);
+            "/provider_power/activate_motors", 10, std::bind(&RS485Provider::EnableDisableMotors, this, _1), sub_opt);
     }
 
     // node destructor
-    RS485Interface::~RS485Interface() {}
+    RS485Provider::~RS485Provider() {}
 
-    bool RS485Interface::OpenPort()
+    bool RS485Provider::OpenPort()
     {
         bool res = _rs485Connection.OpenPort();
         if (res)
@@ -80,7 +80,7 @@ namespace rs485_port_manager
         return res;
     }
 
-    void RS485Interface::pollKillMission()
+    void RS485Provider::pollKillMission()
     {
         queueObject msg;
         msg.data.push_back(0x00);
@@ -99,14 +99,14 @@ namespace rs485_port_manager
         _writerQueue.push_back(msg);
     }
 
-    void RS485Interface::pollPower()
+    void RS485Provider::pollPower()
     {
         _rs485Connection.Transmit(_GET_POWER_MSG, 15);
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
         _rs485Connection.Transmit(_GET_FEEDBACK_MSG, 15);
     }
 
-    std::tuple<uint8_t, uint8_t> RS485Interface::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
+    std::tuple<uint8_t, uint8_t> RS485Provider::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
                                                           std::vector<uint8_t> data)
     {
         uint16_t check = (uint16_t)(_START_BYTE + slave + cmd + nbByte + _END_BYTE);
@@ -117,9 +117,9 @@ namespace rs485_port_manager
         return {check >> 8, check & 0XFF};
     }
 
-    void RS485Interface::Kill() { _thread_control = false; }
+    void RS485Provider::Kill() { _thread_control = false; }
 
-    void RS485Interface::processActuatorRequest(
+    void RS485Provider::processActuatorRequest(
         const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
         std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response)
     {
@@ -151,21 +151,21 @@ namespace rs485_port_manager
         }         
     }
 
-    void RS485Interface::publishKill(bool status)
+    void RS485Provider::publishKill(bool status)
     {
         sonia_common_ros2::msg::KillStatus state;
         state.status = status;
         _publisherKill->publish(state);
     }
 
-    void RS485Interface::publishMission(bool status)
+    void RS485Provider::publishMission(bool status)
     {
         sonia_common_ros2::msg::MissionStatus state;
         state.status = status;
         _publisherMission->publish(state);
     }
 
-    void RS485Interface::publishMotor(uint8_t cmd, std::vector<float> data)
+    void RS485Provider::publishMotor(uint8_t cmd, std::vector<float> data)
     {
         /*if (data.size() != 8)
         {
@@ -197,7 +197,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Interface::publishBattery(uint8_t cmd, float *data)
+    void RS485Provider::publishBattery(uint8_t cmd, float *data)
     {
         sonia_common_ros2::msg::BatteryPowerMessages msg;
         msg.battery1 = data[0];
@@ -219,7 +219,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Interface::publishMotorFeedback(std::vector<uint8_t> data)
+    void RS485Provider::publishMotorFeedback(std::vector<uint8_t> data)
     {
         sonia_common_ros2::msg::MotorFeedback msg;
         msg.motor1 = data[0];
@@ -233,7 +233,7 @@ namespace rs485_port_manager
         _publisherMotorFeedback->publish(msg);
     }
 
-    void RS485Interface::processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data)
+    void RS485Provider::processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data)
     {
         std::vector<float> motorData;
         motorData.reserve(10);
@@ -305,7 +305,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Interface::readData()
+    void RS485Provider::readData()
     {
         // Delay for port opening
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
@@ -325,7 +325,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Interface::writeData()
+    void RS485Provider::writeData()
     {
         // close the thread.
         while (_thread_control)
@@ -359,7 +359,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Interface::parseData()
+    void RS485Provider::parseData()
     {
         while (_thread_control)
         {
@@ -438,7 +438,7 @@ namespace rs485_port_manager
         }
     }
 
-    int RS485Interface::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
+    int RS485Provider::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
     {
         uint8_t size_req = req.size();
         if (size_req % 4 != 0) return -1;
@@ -456,7 +456,7 @@ namespace rs485_port_manager
         return 0;
     }
 
-    void RS485Interface::EnableDisableMotors(const std_msgs::msg::Bool &msg)
+    void RS485Provider::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
         queueObject ser;
         ser.cmd = _Cmd::CMD_ACT_MOTOR;
@@ -494,7 +494,7 @@ namespace rs485_port_manager
                 break;
         }
     }
-    void RS485Interface::ToggleMotors(const bool state, uint8_t size, std::vector<uint8_t> &data)
+    void RS485Provider::ToggleMotors(const bool state, uint8_t size, std::vector<uint8_t> &data)
     {
         if (state)
         {
@@ -511,7 +511,7 @@ namespace rs485_port_manager
             }
         }
     }
-    void RS485Interface::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
+    void RS485Provider::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
     {
         queueObject ser;
         ser.cmd = _Cmd::CMD_PWM;
