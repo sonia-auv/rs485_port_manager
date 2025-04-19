@@ -19,10 +19,11 @@ namespace rs485_port_manager
                 RCLCPP_INFO(this->get_logger(), "Using AUV8 port");
             }
             else
-            {
-                ESC_SLAVE = _SlaveId::SLAVE_ESC;
-                RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
-            }
+                if(strcmp(auv, "AUV7")==0)
+                {
+                    ESC_SLAVE = _SlaveId::SLAVE_ESC;
+                    RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
+                }
         }
         catch (...)
         {
