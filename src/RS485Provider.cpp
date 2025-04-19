@@ -420,8 +420,12 @@ namespace rs485_port_manager
                             case _SlaveId::SLAVE_IO:
                                 break;
                             case _SlaveId::SLAVE_PSU0:
-                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
+                                if(msg.cmd==_Cmd::CMD_VOLTAGE){
                                     psu_array[0]=msg.data;
+                                    
+                                    RCLCPP_INFO(this->get_logger(), "recieving from PSU0 "+msg.data.size());
+                                }
+                                    
                                 if(msg.cmd==_Cmd::CMD_CURRENT)
                                     psu_array[4]=msg.data;
                                 break;
@@ -447,7 +451,7 @@ namespace rs485_port_manager
                                 RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
                                 break;
                         }
-                        if(std::all_of(std::begin(psu_array), std::end(psu_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){
+                        /*if(std::all_of(std::begin(psu_array), std::end(psu_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){
                             std::vector<uint8_t> pwr_msg;
                             
                             pwr_msg.push_back(psu_array[0][3]);
@@ -462,7 +466,7 @@ namespace rs485_port_manager
                             pwr_msg.push_back(psu_array[2][1]);
                             pwr_msg.push_back(psu_array[3][1]);
 
-                            if(pwr_msg.size()==10)
+                            /*if(pwr_msg.size()==10)
                                 processPowerManagement(_Cmd::CMD_VOLTAGE, pwr_msg);
 
                             pwr_msg.push_back(psu_array[5][3]);
@@ -477,10 +481,10 @@ namespace rs485_port_manager
                             pwr_msg.push_back(psu_array[6][1]);
                             pwr_msg.push_back(psu_array[7][1]);
 
-                            if(pwr_msg.size()==10)
+                            /*if(pwr_msg.size()==10)
                                 processPowerManagement(_Cmd::CMD_CURRENT, pwr_msg);
 
-                        }
+                        }*/
                         
                     }
                     // packet dropped
