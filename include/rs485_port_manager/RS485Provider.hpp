@@ -175,7 +175,7 @@ namespace rs485_port_manager
         void publishMotorFeedback(std::vector<uint8_t> data);
 
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
-        void ToggleMotors(const bool state, uint8_t size, std::vector<uint8_t> &data);
+        void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
         void PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg);
 
         int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);

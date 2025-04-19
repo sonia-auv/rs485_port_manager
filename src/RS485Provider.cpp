@@ -8,7 +8,7 @@ namespace rs485_port_manager
 {
 
     RS485Provider::RS485Provider()
-        : Node("rs485_interface"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
+        : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         try
         {
@@ -16,13 +16,12 @@ namespace rs485_port_manager
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
             {
                 ESC_SLAVE = _SlaveId::SLAVE_PWR_MANAGEMENT;
-                RCLCPP_INFO(this->get_logger(), "Slave on AUV8");
-                // std::cerr << "Slave on AUV8" << std::endl;
+                RCLCPP_INFO(this->get_logger(), "Using AUV8 port");
             }
             else
             {
                 ESC_SLAVE = _SlaveId::SLAVE_ESC;
-                RCLCPP_INFO(this->get_logger(), "Slave on AUV7");
+                RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
             }
         }
         catch (...)
@@ -290,13 +289,7 @@ namespace rs485_port_manager
                 publishMotor(_Cmd::CMD_TEMPERATURE, motorData);
                 publishBattery(_Cmd::CMD_TEMPERATURE, batteryData);
                 break;
-            case _Cmd::CMD_READ_MOTOR:
-
-                // if (motorData.size() != nb_thruster)
-                //{
-                // std::cerr << "ERROR in the message. Dropping READ MOTOR packet" << std::endl;
-                //  return;
-                //}
+            case _Cmd::CMD_READ_MOTOR:                
                 publishMotorFeedback(data);
                 break;
             default:
@@ -361,6 +354,9 @@ namespace rs485_port_manager
 
     void RS485Provider::parseData()
     {
+
+        std::vector<uint8_t> psu_array [8];
+        
         while (_thread_control)
         {
             // read until the start there or the queue is empty
@@ -423,14 +419,68 @@ namespace rs485_port_manager
                             case _SlaveId::SLAVE_IO:
                                 break;
                             case _SlaveId::SLAVE_PSU0:
+                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
+                                    psu_array[0]=msg.data;
+                                if(msg.cmd==_Cmd::CMD_CURRENT)
+                                    psu_array[4]=msg.data;
+                                break;
                             case _SlaveId::SLAVE_PSU1:
+                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
+                                    psu_array[1]=msg.data;
+                                if(msg.cmd==_Cmd::CMD_CURRENT)
+                                    psu_array[5]=msg.data;
+                                break;
                             case _SlaveId::SLAVE_PSU2:
+                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
+                                    psu_array[2]=msg.data;
+                                if(msg.cmd==_Cmd::CMD_CURRENT)
+                                    psu_array[6]=msg.data;
+                                break;
                             case _SlaveId::SLAVE_PSU3:
+                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
+                                    psu_array[3]=msg.data;
+                                if(msg.cmd==_Cmd::CMD_CURRENT)
+                                    psu_array[7]=msg.data;
                                 break;
                             default:
                                 RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
                                 break;
                         }
+                        if(std::all_of(std::begin(psu_array), std::end(psu_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){
+                            std::vector<uint8_t> pwr_msg;
+                            
+                            pwr_msg.push_back(psu_array[0][3]);
+                            pwr_msg.push_back(psu_array[2][3]);
+
+                            pwr_msg.push_back(psu_array[0][0]);
+                            pwr_msg.push_back(psu_array[1][0]);
+                            pwr_msg.push_back(psu_array[2][0]);
+                            pwr_msg.push_back(psu_array[3][0]);
+                            pwr_msg.push_back(psu_array[0][1]);
+                            pwr_msg.push_back(psu_array[1][1]);
+                            pwr_msg.push_back(psu_array[2][1]);
+                            pwr_msg.push_back(psu_array[3][1]);
+
+                            if(pwr_msg.size()==10)
+                                processPowerManagement(_Cmd::CMD_VOLTAGE, pwr_msg);
+
+                            pwr_msg.push_back(psu_array[5][3]);
+                            pwr_msg.push_back(psu_array[6][3]);
+
+                            pwr_msg.push_back(psu_array[4][0]);
+                            pwr_msg.push_back(psu_array[5][0]);
+                            pwr_msg.push_back(psu_array[6][0]);
+                            pwr_msg.push_back(psu_array[7][0]);
+                            pwr_msg.push_back(psu_array[4][1]);
+                            pwr_msg.push_back(psu_array[5][1]);
+                            pwr_msg.push_back(psu_array[6][1]);
+                            pwr_msg.push_back(psu_array[7][1]);
+
+                            if(pwr_msg.size()==10)
+                                processPowerManagement(_Cmd::CMD_CURRENT, pwr_msg);
+
+                        }
+                        
                     }
                     // packet dropped
                 }
@@ -455,7 +505,6 @@ namespace rs485_port_manager
         }
         return 0;
     }
-
     void RS485Provider::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
         queueObject ser;
@@ -494,7 +543,7 @@ namespace rs485_port_manager
                 break;
         }
     }
-    void RS485Provider::ToggleMotors(const bool state, uint8_t size, std::vector<uint8_t> &data)
+    void RS485Provider::ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data)
     {
         if (state)
         {
@@ -518,6 +567,7 @@ namespace rs485_port_manager
         switch (ESC_SLAVE)
         {
             case _SlaveId::SLAVE_PWR_MANAGEMENT:
+                ser.data.clear();
                 ser.slave = ESC_SLAVE;
 
                 ser.data.push_back(msg.motor1 >> 8);
