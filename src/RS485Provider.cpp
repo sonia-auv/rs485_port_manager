@@ -299,7 +299,7 @@ namespace rs485_port_manager
         }
     }
 
-    void RS485Provider::processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]){
+    inline void RS485Provider::processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]){
         std::vector<uint8_t> psu_data[4];
         std::vector<float> motorData;
         std::vector<uint8_t> motor_feedback;
@@ -311,7 +311,7 @@ namespace rs485_port_manager
         psu_data[2]=res[2];
         psu_data[3]=res[3];
 
-        if(cmd != _Cmd::CMD_READ_MOTOR){
+        if(cmd != _Cmd::CMD_VOLTAGE){
             std::vector<float> convertData[4];
             for(size_t i=0; i<4; i++){    
                 convertData[i].reserve(psu_data[i].size()/4);
@@ -320,7 +320,7 @@ namespace rs485_port_manager
                     std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
                     return;
                 }
-                std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
+                //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
             }
             //8 motor data
             motorData.push_back(convertData[0].at(0));
@@ -331,24 +331,46 @@ namespace rs485_port_manager
             motorData.push_back(convertData[1].at(1));
             motorData.push_back(convertData[2].at(1));
             motorData.push_back(convertData[3].at(1));
-
-            
     
             //2 batteries data
             batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
             batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
         }
-        else
-            {
-                motor_feedback.push_back(psu_data[0].at(0));
-                motor_feedback.push_back(psu_data[1].at(1));
-                motor_feedback.push_back(psu_data[2].at(0));
-                motor_feedback.push_back(psu_data[3].at(1));
-                motor_feedback.push_back(psu_data[0].at(0));
-                motor_feedback.push_back(psu_data[1].at(1));
-                motor_feedback.push_back(psu_data[2].at(0));
-                motor_feedback.push_back(psu_data[3].at(1));
+        if(cmd == _Cmd::CMD_CURRENT){
+            std::vector<float> convertData[4];
+            for(size_t i=0; i<4; i++){    
+                convertData[i].reserve(psu_data[i].size()/4);
+                if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                {
+                    std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
+                    return;
+                }
+                //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
             }
+            //8 motor data
+            motorData.push_back(convertData[0].at(0));
+            motorData.push_back(convertData[1].at(0));
+            motorData.push_back(convertData[2].at(0));
+            motorData.push_back(convertData[3].at(0));
+            motorData.push_back(convertData[0].at(1));
+            motorData.push_back(convertData[1].at(1));
+            motorData.push_back(convertData[2].at(1));
+            motorData.push_back(convertData[3].at(1));
+    
+            //2 batteries data
+            batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
+            batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
+        }
+        if(cmd == _Cmd::CMD_READ_MOTOR){  
+                motor_feedback.push_back(psu_data[0].at(0));
+                motor_feedback.push_back(psu_data[1].at(1));
+                motor_feedback.push_back(psu_data[2].at(0));
+                motor_feedback.push_back(psu_data[3].at(1));
+                motor_feedback.push_back(psu_data[0].at(0));
+                motor_feedback.push_back(psu_data[1].at(1));
+                motor_feedback.push_back(psu_data[2].at(0));
+                motor_feedback.push_back(psu_data[3].at(1));
+        }
 
         switch (cmd)
         {
@@ -497,7 +519,7 @@ namespace rs485_port_manager
                                     psu_curr_array[0]=msg.data;
                                 if(msg.cmd==_Cmd::CMD_READ_MOTOR)
                                     psu_feed_array[0]=msg.data;
-                                RCLCPP_INFO(this->get_logger(), "psu_volt_array size: "+psu_volt_array[0].size());
+                                //RCLCPP_INFO(this->get_logger(), "psu_volt_array size: "+psu_volt_array[0].size());
                                 break;
                             case _SlaveId::SLAVE_PSU1:
                                 if(msg.cmd==_Cmd::CMD_VOLTAGE)
@@ -529,16 +551,30 @@ namespace rs485_port_manager
                         }
                         
                         //process AUV7 voltages
-                        if(std::all_of(std::begin(psu_volt_array), std::end(psu_volt_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
+                        /*if(std::all_of(std::begin(psu_volt_array), std::end(psu_volt_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
                             processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
-                        }
-                        else
-                            RCLCPP_WARN(this->get_logger(), "psu_array is empty");
+                        }*/
                         
                         //process AUV7 currents
-                        //processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array);  
+                        if(std::all_of(std::begin(psu_curr_array), std::end(psu_curr_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
+                            processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
+                            std::vector<float> convertData[4];
+                            /*for(size_t i=0; i<4; i++){    
+                                convertData[i].reserve(psu_curr_array[i].size()/4);
+                                if (convertBytesToFloat(psu_curr_array[i], convertData[i], psu_curr_array[i].size()/4)<0)
+                                {
+                                    std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
+                                    return;
+                                }
+                                std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
+                            }*/
+                        }
+                          
                         //process motor feedback
-                        //processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                        /*if(std::all_of(std::begin(psu_feed_array), std::end(psu_feed_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
+                            processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                        }*/
+                        
                        
                     }
                     // packet dropped

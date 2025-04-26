@@ -153,7 +153,7 @@ namespace rs485_port_manager
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
-        void processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]);
+        inline void processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]);
 
         /**
          * @brief
