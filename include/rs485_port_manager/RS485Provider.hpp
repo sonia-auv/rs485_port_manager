@@ -153,7 +153,7 @@ namespace rs485_port_manager
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
-        inline void processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]);
+        void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
         /**
          * @brief
@@ -186,6 +186,7 @@ namespace rs485_port_manager
             uint8_t bytes[4];
             float_t value;
         };
+        bool checkEmptyVector(std::vector<uint8_t> (&array)[4]);
 
         const uint8_t nb_thruster = 8;
         const uint8_t nb_battery = 2;

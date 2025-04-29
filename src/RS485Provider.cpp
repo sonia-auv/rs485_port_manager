@@ -299,97 +299,92 @@ namespace rs485_port_manager
         }
     }
 
-    inline void RS485Provider::processAUV7PowerManagement(const uint8_t cmd, const std::vector<uint8_t> res[4]){
-        std::vector<uint8_t> psu_data[4];
+    void RS485Provider::processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]){
         std::vector<float> motorData;
-        std::vector<uint8_t> motor_feedback;
         motorData.reserve(8);
         float batteryData[2];
 
-        psu_data[0]=res[0];
-        psu_data[1]=res[1];
-        psu_data[2]=res[2];
-        psu_data[3]=res[3];
-
-        if(cmd != _Cmd::CMD_VOLTAGE){
-            std::vector<float> convertData[4];
-            for(size_t i=0; i<4; i++){    
-                convertData[i].reserve(psu_data[i].size()/4);
-                if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+        if(checkEmptyVector(psu_data)){
+            switch(cmd){
+                case _Cmd::CMD_VOLTAGE:
                 {
-                    std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
-                    return;
+                    std::vector<float> convertData[4];
+                    for(size_t i=0; i<4; i++){    
+                        convertData[i].reserve(psu_data[i].size()/4);
+                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                        {
+                            std::cerr << "ERROR in the message. Dropping VOLTAGE packet" << std::endl;
+                            return;
+                        }
+                    }
+                    //8 motor data
+                    motorData.push_back(convertData[0].at(0));
+                    motorData.push_back(convertData[1].at(0));
+                    motorData.push_back(convertData[2].at(0));
+                    motorData.push_back(convertData[3].at(0));
+                    motorData.push_back(convertData[0].at(1));
+                    motorData.push_back(convertData[1].at(1));
+                    motorData.push_back(convertData[2].at(1));
+                    motorData.push_back(convertData[3].at(1));
+            
+                    //2 batteries data
+                    batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
+                    batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
+                    //publish voltages
+                    publishMotor(_Cmd::CMD_VOLTAGE, motorData);
+                    publishBattery(_Cmd::CMD_VOLTAGE, batteryData);
+                    break;
                 }
-                //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
-            }
-            //8 motor data
-            motorData.push_back(convertData[0].at(0));
-            motorData.push_back(convertData[1].at(0));
-            motorData.push_back(convertData[2].at(0));
-            motorData.push_back(convertData[3].at(0));
-            motorData.push_back(convertData[0].at(1));
-            motorData.push_back(convertData[1].at(1));
-            motorData.push_back(convertData[2].at(1));
-            motorData.push_back(convertData[3].at(1));
-    
-            //2 batteries data
-            batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
-            batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
-        }
-        if(cmd == _Cmd::CMD_CURRENT){
-            std::vector<float> convertData[4];
-            for(size_t i=0; i<4; i++){    
-                convertData[i].reserve(psu_data[i].size()/4);
-                if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                case _Cmd::CMD_CURRENT:
                 {
-                    std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
-                    return;
+                    std::vector<float> convertData[4];
+                    for(size_t i=0; i<4; i++){    
+                        convertData[i].reserve(psu_data[i].size()/4);
+                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                        {
+                            std::cerr << "ERROR in the message. Dropping CURRENT packet" << std::endl;
+                            return;
+                        }
+                        //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
+                    }
+                    //8 motor data
+                    motorData.push_back(convertData[0].at(0));
+                    motorData.push_back(convertData[1].at(0));
+                    motorData.push_back(convertData[2].at(0));
+                    motorData.push_back(convertData[3].at(0));
+                    motorData.push_back(convertData[0].at(1));
+                    motorData.push_back(convertData[1].at(1));
+                    motorData.push_back(convertData[2].at(1));
+                    motorData.push_back(convertData[3].at(1));
+            
+                    //2 batteries data
+                    batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
+                    batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
+                    //publish currents
+                    publishMotor(_Cmd::CMD_CURRENT, motorData);
+                    publishBattery(_Cmd::CMD_CURRENT, batteryData);
+                    break;
                 }
-                //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
-            }
-            //8 motor data
-            motorData.push_back(convertData[0].at(0));
-            motorData.push_back(convertData[1].at(0));
-            motorData.push_back(convertData[2].at(0));
-            motorData.push_back(convertData[3].at(0));
-            motorData.push_back(convertData[0].at(1));
-            motorData.push_back(convertData[1].at(1));
-            motorData.push_back(convertData[2].at(1));
-            motorData.push_back(convertData[3].at(1));
-    
-            //2 batteries data
-            batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
-            batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
-        }
-        if(cmd == _Cmd::CMD_READ_MOTOR){  
-                motor_feedback.push_back(psu_data[0].at(0));
-                motor_feedback.push_back(psu_data[1].at(1));
-                motor_feedback.push_back(psu_data[2].at(0));
-                motor_feedback.push_back(psu_data[3].at(1));
-                motor_feedback.push_back(psu_data[0].at(0));
-                motor_feedback.push_back(psu_data[1].at(1));
-                motor_feedback.push_back(psu_data[2].at(0));
-                motor_feedback.push_back(psu_data[3].at(1));
-        }
-
-        switch (cmd)
-        {
-            case _Cmd::CMD_VOLTAGE:
-                publishMotor(_Cmd::CMD_VOLTAGE, motorData);
-                publishBattery(_Cmd::CMD_VOLTAGE, batteryData);
-                break;
-            case _Cmd::CMD_CURRENT:
-                publishMotor(_Cmd::CMD_CURRENT, motorData);
-                publishBattery(_Cmd::CMD_CURRENT, batteryData);
-                break;
-            case _Cmd::CMD_READ_MOTOR:                
-                publishMotorFeedback(motor_feedback);
-                break;
-            default:
-                RCLCPP_ERROR(this->get_logger(), "ERROR Unkown CMD for PWR management");
-                break;
-        }
-        
+                case _Cmd::CMD_READ_MOTOR:
+                {
+                    std::vector<uint8_t> motor_feedback;
+                    motor_feedback.push_back(psu_data[0].at(0));
+                    motor_feedback.push_back(psu_data[1].at(1));
+                    motor_feedback.push_back(psu_data[2].at(0));
+                    motor_feedback.push_back(psu_data[3].at(1));
+                    motor_feedback.push_back(psu_data[0].at(0));
+                    motor_feedback.push_back(psu_data[1].at(1));
+                    motor_feedback.push_back(psu_data[2].at(0));
+                    motor_feedback.push_back(psu_data[3].at(1));
+                    //motor feedback publish
+                    publishMotorFeedback(motor_feedback);
+                    break;
+                }
+                default:{
+                    RCLCPP_ERROR(this->get_logger(), "ERROR Unkown CMD for PWR management");
+                }
+            } 
+        } 
     }
     void RS485Provider::readData()
     {
@@ -519,7 +514,6 @@ namespace rs485_port_manager
                                     psu_curr_array[0]=msg.data;
                                 if(msg.cmd==_Cmd::CMD_READ_MOTOR)
                                     psu_feed_array[0]=msg.data;
-                                //RCLCPP_INFO(this->get_logger(), "psu_volt_array size: "+psu_volt_array[0].size());
                                 break;
                             case _SlaveId::SLAVE_PSU1:
                                 if(msg.cmd==_Cmd::CMD_VOLTAGE)
@@ -550,31 +544,26 @@ namespace rs485_port_manager
                                 break;
                         }
                         
-                        //process AUV7 voltages
-                        /*if(std::all_of(std::begin(psu_volt_array), std::end(psu_volt_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
-                            processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
-                        }*/
-                        
-                        //process AUV7 currents
-                        if(std::all_of(std::begin(psu_curr_array), std::end(psu_curr_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
-                            processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
-                            std::vector<float> convertData[4];
-                            /*for(size_t i=0; i<4; i++){    
-                                convertData[i].reserve(psu_curr_array[i].size()/4);
-                                if (convertBytesToFloat(psu_curr_array[i], convertData[i], psu_curr_array[i].size()/4)<0)
-                                {
-                                    std::cerr << "ERROR in the message. Dropping VOLTAGE/CURRENT packet" << std::endl;
-                                    return;
-                                }
-                                std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
-                            }*/
+                        switch(msg.cmd){
+                            case _Cmd::CMD_VOLTAGE:
+                            {
+                                processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
+                                break;
+                            }
+                            case _Cmd::CMD_CURRENT:
+                            {
+                                processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
+                                break;
+                            }
+                            case _Cmd::CMD_READ_MOTOR:
+                            {
+                                processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                                break;
+                            }
+                            default:{
+                                RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD");
+                            }
                         }
-                          
-                        //process motor feedback
-                        /*if(std::all_of(std::begin(psu_feed_array), std::end(psu_feed_array), [](const std::vector<uint8_t>& psu){return !psu.empty();})){ 
-                            processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
-                        }*/
-                        
                        
                     }
                     // packet dropped
@@ -583,6 +572,12 @@ namespace rs485_port_manager
         }
     }
 
+    bool RS485Provider::checkEmptyVector(std::vector<uint8_t> (&array)[4]){
+        for (const auto& v: array){
+            if(v.empty())return false;
+        }
+        return true;
+    }
     int RS485Provider::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
     {
         uint8_t size_req = req.size();
