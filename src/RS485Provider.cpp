@@ -304,7 +304,7 @@ namespace rs485_port_manager
         motorData.reserve(8);
         float batteryData[2];
 
-        if(checkEmptyVector(psu_data)){
+        if(checkNoEmptyVector(psu_data)){
             switch(cmd){
                 case _Cmd::CMD_VOLTAGE:
                 {
@@ -508,60 +508,97 @@ namespace rs485_port_manager
                             case _SlaveId::SLAVE_IO:
                                 break;
                             case _SlaveId::SLAVE_PSU0:
-                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
-                                    psu_volt_array[0]=msg.data;                         
-                                if(msg.cmd==_Cmd::CMD_CURRENT)
-                                    psu_curr_array[0]=msg.data;
-                                if(msg.cmd==_Cmd::CMD_READ_MOTOR)
-                                    psu_feed_array[0]=msg.data;
+                            {
+                                //Motor 1 and Motor 5
+                                switch (msg.cmd)
+                                {
+                                    case _Cmd::CMD_VOLTAGE:
+                                        psu_volt_array[0]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_CURRENT:
+                                        psu_curr_array[0]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_READ_MOTOR:
+                                        psu_feed_array[0]=msg.data;
+                                        break;                                        
+                                    default:
+                                        break;
+                                }//end switch case
                                 break;
+                            }
                             case _SlaveId::SLAVE_PSU1:
-                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
-                                    psu_volt_array[1]=msg.data;                         
-                                if(msg.cmd==_Cmd::CMD_CURRENT)
-                                    psu_curr_array[1]=msg.data;
-                                if(msg.cmd==_Cmd::CMD_READ_MOTOR)
-                                    psu_feed_array[1]=msg.data;
+                            {
+                                //Motor 2 and Motor 6
+                                switch (msg.cmd)
+                                {
+                                    case _Cmd::CMD_VOLTAGE: psu_volt_array[1]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_CURRENT: psu_curr_array[1]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=msg.data;
+                                        break;                                        
+                                    default:
+                                        break;
+                                }//end switch case
                                 break;
+                            }
                             case _SlaveId::SLAVE_PSU2:
-                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
-                                    psu_volt_array[2]=msg.data;                         
-                                if(msg.cmd==_Cmd::CMD_CURRENT)
-                                    psu_curr_array[2]=msg.data;
-                                if(msg.cmd==_Cmd::CMD_READ_MOTOR)
-                                    psu_feed_array[2]=msg.data;
+                            {
+                                //Motor 3 and Motor 7
+                                switch (msg.cmd)
+                                {
+                                    case _Cmd::CMD_VOLTAGE: psu_volt_array[2]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_CURRENT: psu_curr_array[2]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=msg.data;
+                                        break;                                        
+                                    default:
+                                        break;
+                                }//end switch case
                                 break;
+                            }
                             case _SlaveId::SLAVE_PSU3:
-                                if(msg.cmd==_Cmd::CMD_VOLTAGE)
-                                    psu_volt_array[3]=msg.data;                         
-                                if(msg.cmd==_Cmd::CMD_CURRENT)
-                                    psu_curr_array[3]=msg.data;
-                                if(msg.cmd==_Cmd::CMD_READ_MOTOR)
-                                    psu_feed_array[3]=msg.data;
+                            {
+                                //Motor 4 and Motor 8
+                                switch (msg.cmd)
+                                {
+                                    case _Cmd::CMD_VOLTAGE: psu_volt_array[3]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_CURRENT: psu_curr_array[3]=msg.data;
+                                        break;
+                                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=msg.data;
+                                        break;                                        
+                                    default:
+                                        break;
+                                }//end switch case
                                 break;
+                            }
                             default:
                                 RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
                                 break;
                         }
                         
-                        switch(msg.cmd){
-                            case _Cmd::CMD_VOLTAGE:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
-                                break;
-                            }
-                            case _Cmd::CMD_CURRENT:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
-                                break;
-                            }
-                            case _Cmd::CMD_READ_MOTOR:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
-                                break;
-                            }
-                            default:{
-                                RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD");
+                    if(msg.slave==_SlaveId::SLAVE_PSU0 || msg.slave==_SlaveId::SLAVE_PSU1 || msg.slave==_SlaveId::SLAVE_PSU2 || msg.slave==_SlaveId::SLAVE_PSU3 ){
+                            switch(msg.cmd){
+                                case _Cmd::CMD_VOLTAGE:
+                                {
+                                    processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
+                                    break;
+                                }
+                                case _Cmd::CMD_CURRENT:
+                                {
+                                    processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
+                                    break;
+                                }
+                                case _Cmd::CMD_READ_MOTOR:
+                                {
+                                    processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                                    break;
+                                }
+                                default:{
+                                    RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD for AUV7 pwr management");
+                                }
                             }
                         }
                        
@@ -572,7 +609,7 @@ namespace rs485_port_manager
         }
     }
 
-    bool RS485Provider::checkEmptyVector(std::vector<uint8_t> (&array)[4]){
+    bool RS485Provider::checkNoEmptyVector(std::vector<uint8_t> (&array)[4]){
         for (const auto& v: array){
             if(v.empty())return false;
         }
@@ -654,74 +691,34 @@ namespace rs485_port_manager
     {
         queueObject ser;
         ser.cmd = _Cmd::CMD_PWM;
-        switch (ESC_SLAVE)
-        {
-            case _SlaveId::SLAVE_PWR_MANAGEMENT:
-                ser.data.clear();
-                ser.slave = ESC_SLAVE;
+        ser.slave = ESC_SLAVE;
+        ser.data.clear();
+        
+        ser.data.push_back(msg.motor1 >> 8);
+        ser.data.push_back(msg.motor1 & 0xFF);
 
-                ser.data.push_back(msg.motor1 >> 8);
-                ser.data.push_back(msg.motor1 & 0xFF);
+        ser.data.push_back(msg.motor2 >> 8);
+        ser.data.push_back(msg.motor2 & 0xFF);
 
-                ser.data.push_back(msg.motor2 >> 8);
-                ser.data.push_back(msg.motor2 & 0xFF);
+        ser.data.push_back(msg.motor3 >> 8);
+        ser.data.push_back(msg.motor3 & 0xFF);
 
-                ser.data.push_back(msg.motor3 >> 8);
-                ser.data.push_back(msg.motor3 & 0xFF);
+        ser.data.push_back(msg.motor4 >> 8);
+        ser.data.push_back(msg.motor4 & 0xFF);
 
-                ser.data.push_back(msg.motor4 >> 8);
-                ser.data.push_back(msg.motor4 & 0xFF);
+        ser.data.push_back(msg.motor5 >> 8);
+        ser.data.push_back(msg.motor5 & 0xFF);
 
-                ser.data.push_back(msg.motor5 >> 8);
-                ser.data.push_back(msg.motor5 & 0xFF);
+        ser.data.push_back(msg.motor6 >> 8);
+        ser.data.push_back(msg.motor6 & 0xFF);
 
-                ser.data.push_back(msg.motor6 >> 8);
-                ser.data.push_back(msg.motor6 & 0xFF);
+        ser.data.push_back(msg.motor7 >> 8);
+        ser.data.push_back(msg.motor7 & 0xFF);
 
-                ser.data.push_back(msg.motor7 >> 8);
-                ser.data.push_back(msg.motor7 & 0xFF);
+        ser.data.push_back(msg.motor8 >> 8);
+        ser.data.push_back(msg.motor8 & 0xFF);
 
-                ser.data.push_back(msg.motor8 >> 8);
-                ser.data.push_back(msg.motor8 & 0xFF);
-
-                _writerQueue.push_back(ser);
-                break;
-            case _SlaveId::SLAVE_ESC:
-                ser.slave = _SlaveId::SLAVE_PSU0;
-                ser.data.clear();
-                ser.data.push_back(msg.motor1 >> 8);
-                ser.data.push_back(msg.motor1 & 0xFF);
-                ser.data.push_back(msg.motor5 >> 8);
-                ser.data.push_back(msg.motor5 & 0xFF);
-                _writerQueue.push_back(ser);
-
-                ser.slave = _SlaveId::SLAVE_PSU1;
-                ser.data.clear();
-                ser.data.push_back(msg.motor2 >> 8);
-                ser.data.push_back(msg.motor2 & 0xFF);
-                ser.data.push_back(msg.motor6 >> 8);
-                ser.data.push_back(msg.motor6 & 0xFF);
-                _writerQueue.push_back(ser);
-
-                ser.slave = _SlaveId::SLAVE_PSU2;
-                ser.data.clear();
-                ser.data.push_back(msg.motor3 >> 8);
-                ser.data.push_back(msg.motor3 & 0xFF);
-                ser.data.push_back(msg.motor7 >> 8);
-                ser.data.push_back(msg.motor7 & 0xFF);
-                _writerQueue.push_back(ser);
-
-                ser.slave = _SlaveId::SLAVE_PSU3;
-                ser.data.clear();
-                ser.data.push_back(msg.motor4 >> 8);
-                ser.data.push_back(msg.motor4 & 0xFF);
-                ser.data.push_back(msg.motor8 >> 8);
-                ser.data.push_back(msg.motor8 & 0xFF);
-                _writerQueue.push_back(ser);
-                break;
-
-            default:
-                break;
-        }
+        _writerQueue.push_back(ser);
+        
     }
-}  // namespace sonia_hw_interface
+}  // namespace rs485_port_manager

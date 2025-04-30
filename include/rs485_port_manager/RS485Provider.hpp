@@ -186,7 +186,7 @@ namespace rs485_port_manager
             uint8_t bytes[4];
             float_t value;
         };
-        bool checkEmptyVector(std::vector<uint8_t> (&array)[4]);
+        bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
 
         const uint8_t nb_thruster = 8;
         const uint8_t nb_battery = 2;
