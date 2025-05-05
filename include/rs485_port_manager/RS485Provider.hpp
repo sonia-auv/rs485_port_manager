@@ -10,7 +10,7 @@
 #include <tuple>
 #include <vector>
 
-#include "SharedQueue.hpp"
+#include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
@@ -46,11 +46,11 @@ namespace rs485_port_manager
         }
     };
 
-    class RS485Interface : public rclcpp::Node
+    class RS485Provider : public rclcpp::Node
     {
         public:
-        RS485Interface();
-        ~RS485Interface();
+        RS485Provider();
+        ~RS485Provider();
 
         /**
          * @brief Open designated internal serial port.
@@ -153,6 +153,7 @@ namespace rs485_port_manager
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
+        void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
         /**
          * @brief
@@ -175,7 +176,7 @@ namespace rs485_port_manager
         void publishMotorFeedback(std::vector<uint8_t> data);
 
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
-        void ToggleMotors(const bool state, uint8_t size, std::vector<uint8_t> &data);
+        void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
         void PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg);
 
         int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
@@ -185,6 +186,7 @@ namespace rs485_port_manager
             uint8_t bytes[4];
             float_t value;
         };
+        bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
 
         const uint8_t nb_thruster = 8;
         const uint8_t nb_battery = 2;
@@ -220,8 +222,8 @@ namespace rs485_port_manager
         std::thread _writer;
 
         rclcpp::CallbackGroup::SharedPtr group1;
-        SharedQueue<queueObject> _writerQueue;
-        SharedQueue<uint8_t> _parseQueue;
+        sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
+        sonia_common_cpp::SharedQueue<uint8_t> _parseQueue;
 
         bool _thread_control;
 
