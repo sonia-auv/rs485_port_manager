@@ -224,11 +224,9 @@ namespace rs485_port_manager
         std::thread _writer;
 
         std::mutex _mtxParser;
-        std::unique_lock<std::mutex> _lockParser(_mtxParser);
         std::condition_variable _cvReaderParser;
 
         std::mutex _mtxWriter;
-        std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
         std::condition_variable _cvReaderWriter;
 
         rclcpp::CallbackGroup::SharedPtr group1;

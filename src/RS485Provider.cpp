@@ -419,11 +419,14 @@ namespace rs485_port_manager
 
     void RS485Provider::writeData()
     {
+        
+        std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
+
         // close the thread.
         while (_thread_control)
         {            
             // read until the start there or the queue is empty
-            _cvReaderWriter.wait(_lockWriter, []{ return !_writerQueue.empty(); });
+            _cvReaderWriter.wait(_lockWriter, [&]{ return !_writerQueue.empty(); });
 
             queueObject msg = _writerQueue.get_n_pop_front();
             const size_t data_size = msg.data.size() + 7;
@@ -456,11 +459,13 @@ namespace rs485_port_manager
         std::vector<uint8_t> psu_curr_array[4];
         std::vector<uint8_t> psu_feed_array[4];
 
+        std::unique_lock<std::mutex> _lockParser(_mtxParser);
+
         while (_thread_control)
         {
             
         // read until the start there or the queue is empty
-        _cvReaderParser.wait(_lockParser, []{ return !_parseQueue.empty(); });
+        _cvReaderParser.wait(_lockParser, [&]{ return !_parseQueue.empty(); });
             // check if the bit is the start bit:
             if (_parseQueue.front() != _START_BYTE)
             {
