@@ -8,6 +8,8 @@
 #include <std_srvs/srv/empty.hpp>
 #include <thread>
 #include <tuple>
+#include <mutex>
+#include <condition_variable>
 #include <vector>
 
 #include "sonia_common_cpp/SharedQueue.hpp"
@@ -220,6 +222,14 @@ namespace rs485_port_manager
         std::thread _reader;
         std::thread _parser;
         std::thread _writer;
+
+        std::mutex _mtxParser;
+        std::unique_lock<std::mutex> _lockParser(_mtxParser);
+        std::condition_variable _cvReaderParser;
+
+        std::mutex _mtxWriter;
+        std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
+        std::condition_variable _cvReaderWriter;
 
         rclcpp::CallbackGroup::SharedPtr group1;
         sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
