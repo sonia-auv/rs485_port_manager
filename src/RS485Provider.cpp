@@ -1,4 +1,5 @@
 #include "rs485_port_manager/RS485Provider.hpp"
+#include <ctime>
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -421,12 +422,18 @@ namespace rs485_port_manager
     {
         
         std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
+        time_t timestamp;
 
         // close the thread.
         while (_thread_control)
-        {            
+        {
+            time(&timestamp);
+
+            RCLCPP_DEBUG(node->get_logger(), strcat("Start ",ctime(&timestamp)) );
             // read until the start there or the queue is empty
             _cvReaderWriter.wait(_lockWriter, [&]{ return !_writerQueue.empty(); });
+            time(&timestamp);
+            RCLCPP_DEBUG(node->get_logger(), strcat("Send %d",ctime(&timestamp)) );
 
             queueObject msg = _writerQueue.get_n_pop_front();
             const size_t data_size = msg.data.size() + 7;
