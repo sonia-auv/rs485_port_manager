@@ -9,7 +9,7 @@ namespace rs485_port_manager
 {
 
     RS485Provider::RS485Provider()
-        : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, true), _thread_control(true)
+        : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         try
         {
@@ -414,7 +414,7 @@ namespace rs485_port_manager
                 }
                 
                 _cvReaderParser.notify_all();
-            }
+            }std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
 
@@ -429,11 +429,11 @@ namespace rs485_port_manager
         {
             time(&timestamp);
 
-            RCLCPP_DEBUG(node->get_logger(), strcat("Start ",ctime(&timestamp)) );
+            RCLCPP_INFO(this->get_logger(), "Start %s", ctime(&timestamp));
             // read until the start there or the queue is empty
             _cvReaderWriter.wait(_lockWriter, [&]{ return !_writerQueue.empty(); });
             time(&timestamp);
-            RCLCPP_DEBUG(node->get_logger(), strcat("Send %d",ctime(&timestamp)) );
+            RCLCPP_INFO(this->get_logger(), "Send %s", ctime(&timestamp));
 
             queueObject msg = _writerQueue.get_n_pop_front();
             const size_t data_size = msg.data.size() + 7;
@@ -455,8 +455,10 @@ namespace rs485_port_manager
             data[data_size - 3] = std::get<0>(checksum);
             data[data_size - 2] = std::get<1>(checksum);
             data[data_size - 1] = _END_BYTE;
+            RCLCPP_INFO(this->get_logger(), "BEFORE %s", ctime(&timestamp));
             _rs485Connection.Transmit(data, data_size);
             delete data;
+            RCLCPP_INFO(this->get_logger(), "END %s", ctime(&timestamp));
         }
     }
 
