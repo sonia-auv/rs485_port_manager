@@ -24,8 +24,7 @@
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 
 
-namespace rs485_port_manager
-{
+
     /**
      * @brief Internal Queue Object
      *
