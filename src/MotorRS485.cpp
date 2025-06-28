@@ -59,10 +59,130 @@ namespace module{
             "/provider_thruster/thruster_pwm", 10, std::bind(&MotorRS485::PwmCallback, this, _1), sub_opt);
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
             "/provider_power/activate_motors", 10, std::bind(&MotorRS485::EnableDisableMotors, this, _1), sub_opt);
+        
+        _publisherRS485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>(
+            "/rs485/msgToSend", 10);
+
+        _subscriberMotor = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10
+                , std::bind(&MotorRS485::messageRS485CallBack, this, _1), sub_opt);
     }
 
     // node destructor
     MotorRS485::~MotorRS485() {}
+
+    void MotorRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){
+
+        queueObject ser;
+        ser.cmd = msg.cmd;
+        ser.slave = msg.slave;
+        ser.data.clear();
+
+        std::vector<uint8_t> uint8Vector;
+        uint8Vector.resize(msg.data.size());
+        
+        std::transform(msg.data.begin(), msg.data.end(), uint8Vector.begin(),
+                   [](char c) { return static_cast<uint8_t>(c); });
+        ser.data = uint8Vector;
+        switch (ser.slave)
+        {
+            case _SlaveId::SLAVE_PWR_MANAGEMENT:
+                processPowerManagement(ser.cmd, ser.data);
+                break;
+            case _SlaveId::SLAVE_PSU0:
+            {
+                //Motor 1 and Motor 5
+                switch (ser.cmd)
+                {
+                    case _Cmd::CMD_VOLTAGE:
+                        psu_volt_array[0]=ser.data;
+                        break;
+                    case _Cmd::CMD_CURRENT:
+                        psu_curr_array[0]=ser.data;
+                        break;
+                    case _Cmd::CMD_READ_MOTOR:
+                        psu_feed_array[0]=ser.data;
+                        break;                                        
+                    default:
+                        break;
+                }//end switch case
+                break;
+            }
+            case _SlaveId::SLAVE_PSU1:
+            {
+                //Motor 2 and Motor 6
+                switch (ser.cmd)
+                {
+                    case _Cmd::CMD_VOLTAGE: psu_volt_array[1]=ser.data;
+                        break;
+                    case _Cmd::CMD_CURRENT: psu_curr_array[1]=ser.data;
+                        break;
+                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=ser.data;
+                        break;                                        
+                    default:
+                        break;
+                }//end switch case
+                break;
+            }
+            case _SlaveId::SLAVE_PSU2:
+            {
+                //Motor 3 and Motor 7
+                switch (msg.cmd)
+                {
+                    case _Cmd::CMD_VOLTAGE: psu_volt_array[2]=ser.data;
+                        break;
+                    case _Cmd::CMD_CURRENT: psu_curr_array[2]=ser.data;
+                        break;
+                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=ser.data;
+                        break;                                        
+                    default:
+                        break;
+                }//end switch case
+                break;
+            }
+            case _SlaveId::SLAVE_PSU3:
+            {
+                //Motor 4 and Motor 8
+                switch (msg.cmd)
+                {
+                    case _Cmd::CMD_VOLTAGE: psu_volt_array[3]=ser.data;
+                        break;
+                    case _Cmd::CMD_CURRENT: psu_curr_array[3]=ser.data;
+                        break;
+                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=ser.data;
+                        break;                                        
+                    default:
+                        break;
+                }//end switch case  
+                break;
+            }
+            default:
+                RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", ser.slave);
+                break;
+        }
+        
+        if(ser.slave==_SlaveId::SLAVE_PSU0 || ser.slave==_SlaveId::SLAVE_PSU1 || ser.slave==_SlaveId::SLAVE_PSU2 || ser.slave==_SlaveId::SLAVE_PSU3 ){
+                switch(ser.cmd){
+                    case _Cmd::CMD_VOLTAGE:
+                    {
+                        processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
+                        break;
+                    }
+                    case _Cmd::CMD_CURRENT:
+                    {
+                        processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
+                        break;
+                    }
+                    case _Cmd::CMD_READ_MOTOR:
+                    {
+                        processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                        break;
+                    }
+                    default:{
+                        RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD for AUV7 pwr management");
+                    }
+                }
+            }
+}
 
     void MotorRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
@@ -151,10 +271,6 @@ namespace module{
 
     void MotorRS485::publishMotor(uint8_t cmd, std::vector<float> data)
     {
-        /*if (data.size() != 8)
-        {
-            return;
-        }*/
         sonia_common_ros2::msg::MotorPowerMessages msg;
         msg.motor1 = data[0];
         msg.motor2 = data[1];
@@ -394,13 +510,5 @@ namespace module{
             res.push_back(converter.value);
         }
         return 0;
-    }
-
-    int sendMessage(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size){
-        return 1;
-    };
-
-    int convertsFloatToByte(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size){
-        return 1;
     }
 }

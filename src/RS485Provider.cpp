@@ -17,16 +17,18 @@ namespace rs485_port_manager
         _reader = std::thread(std::bind(&RS485Provider::readData, this));
         _writer = std::thread(std::bind(&RS485Provider::writeData, this));
         _parser = std::thread(std::bind(&RS485Provider::parseData, this));
-        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
-        _publisherMission =
-            this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
+
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
             "/provider_actuator/do_action", std::bind(&RS485Provider::processActuatorRequest, this, _1, _2));
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Provider::pollKillMission, this));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
         
-        _publisherRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
+        _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10, std::bind(&RS485Provider::RS485callback, this, _1), sub_opt);
+        
+        _publisherKill = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10);
+        _publisherIO = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/ioMessage", 10);
+        _publisherMotor = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10);
     }
 
     // node destructor
@@ -81,13 +83,6 @@ namespace rs485_port_manager
         _cvReaderWriter.notify_all();
     }
 
-    void RS485Provider::pollPower()
-    {
-        _rs485Connection.Transmit(_GET_POWER_MSG, 15);
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        _rs485Connection.Transmit(_GET_FEEDBACK_MSG, 15);
-    }
-
     std::tuple<uint8_t, uint8_t> RS485Provider::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
                                                           std::vector<uint8_t> data)
     {
@@ -139,14 +134,12 @@ namespace rs485_port_manager
     {
         sonia_common_ros2::msg::KillStatus state;
         state.status = status;
-        _publisherKill->publish(state);
     }
 
     void RS485Provider::publishMission(bool status)
     {
         sonia_common_ros2::msg::MissionStatus state;
         state.status = status;
-        _publisherMission->publish(state);
     }
 
     void RS485Provider::readData()
@@ -228,18 +221,19 @@ namespace rs485_port_manager
             }
             else
             {
-                queueObject msg;
+                sonia_common_ros2::msg::RS485msg msgRS485 = sonia_common_ros2::msg::RS485msg();
 
                 // pop the unused start data
                 _parseQueue.pop_front();
 
-                msg.slave = _parseQueue.get_n_pop_front();
-                msg.cmd = _parseQueue.get_n_pop_front();
+                msgRS485.cmd =  _parseQueue.get_n_pop_front();
+
+                msgRS485.slave =  _parseQueue.get_n_pop_front();
                 uint8_t nbByte = _parseQueue.get_n_pop_front();
 
                 for (int i = 0; i < nbByte; i++)
                 {
-                    msg.data.push_back(_parseQueue.get_n_pop_front());
+                    msgRS485.data.push_back(_parseQueue.get_n_pop_front());
                 }
 
                 std::tuple<uint8_t, uint8_t> checkResult = {(_parseQueue.get_n_pop_front()),
@@ -248,128 +242,29 @@ namespace rs485_port_manager
                 // pop the unused end data
                 _parseQueue.pop_front();
 
-                std::tuple<uint8_t, uint8_t> calc_checksum = checkSum(msg.slave, msg.cmd, nbByte, msg.data);
+                std::tuple<uint8_t, uint8_t> calc_checksum = checkSum(msgRS485.slave, msgRS485.cmd, nbByte, msgRS485.data);
                 // if the checksum is bad, drop the packet
                 if (checkResult == calc_checksum)
                 {
                     // publisher.publish(msg);
-                    switch (msg.slave)
+                    switch (msgRS485.slave)
                     {
                         case _SlaveId::SLAVE_KILLMISSION:
-                            switch (msg.cmd)
-                            {
-                                case _Cmd::CMD_KILL:
-                                    // get data value
-                                    // publish on kill publisher
-                                    publishKill(msg.data[0] == 1);
-                                    break;
-                                case _Cmd::CMD_MISSION:
-                                    // get data value
-                                    // publish on mission publisher
-                                    publishMission(msg.data[0] == 1);
-                                    break;
-                                default:
-                                    break;
-                            }
-                            break;
-                        case _SlaveId::SLAVE_PWR_MANAGEMENT:
-                            processPowerManagement(msg.cmd, msg.data);
+                            _publisherKill->publish(msgRS485);
                             break;
                         case _SlaveId::SLAVE_IO:
+                            _publisherIO->publish(msgRS485);
                             break;
+                        case _SlaveId::SLAVE_PWR_MANAGEMENT:
                         case _SlaveId::SLAVE_PSU0:
-                        {
-                            //Motor 1 and Motor 5
-                            switch (msg.cmd)
-                            {
-                                case _Cmd::CMD_VOLTAGE:
-                                    psu_volt_array[0]=msg.data;
-                                    break;
-                                case _Cmd::CMD_CURRENT:
-                                    psu_curr_array[0]=msg.data;
-                                    break;
-                                case _Cmd::CMD_READ_MOTOR:
-                                    psu_feed_array[0]=msg.data;
-                                    break;                                        
-                                default:
-                                    break;
-                            }//end switch case
-                            break;
-                        }
                         case _SlaveId::SLAVE_PSU1:
-                        {
-                            //Motor 2 and Motor 6
-                            switch (msg.cmd)
-                            {
-                                case _Cmd::CMD_VOLTAGE: psu_volt_array[1]=msg.data;
-                                    break;
-                                case _Cmd::CMD_CURRENT: psu_curr_array[1]=msg.data;
-                                    break;
-                                case _Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=msg.data;
-                                    break;                                        
-                                default:
-                                    break;
-                            }//end switch case
-                            break;
-                        }
                         case _SlaveId::SLAVE_PSU2:
-                        {
-                            //Motor 3 and Motor 7
-                            switch (msg.cmd)
-                            {
-                                case _Cmd::CMD_VOLTAGE: psu_volt_array[2]=msg.data;
-                                    break;
-                                case _Cmd::CMD_CURRENT: psu_curr_array[2]=msg.data;
-                                    break;
-                                case _Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=msg.data;
-                                    break;                                        
-                                default:
-                                    break;
-                            }//end switch case
-                            break;
-                        }
                         case _SlaveId::SLAVE_PSU3:
-                        {
-                            //Motor 4 and Motor 8
-                            switch (msg.cmd)
-                            {
-                                case _Cmd::CMD_VOLTAGE: psu_volt_array[3]=msg.data;
-                                    break;
-                                case _Cmd::CMD_CURRENT: psu_curr_array[3]=msg.data;
-                                    break;
-                                case _Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=msg.data;
-                                    break;                                        
-                                default:
-                                    break;
-                            }//end switch case
+                            _publisherMotor->publish(msgRS485);
                             break;
-                        }
                         default:
-                            RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msg.slave);
+                            RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msgRS485.slave);
                             break;
-                    }
-                    
-                if(msg.slave==_SlaveId::SLAVE_PSU0 || msg.slave==_SlaveId::SLAVE_PSU1 || msg.slave==_SlaveId::SLAVE_PSU2 || msg.slave==_SlaveId::SLAVE_PSU3 ){
-                        switch(msg.cmd){
-                            case _Cmd::CMD_VOLTAGE:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
-                                break;
-                            }
-                            case _Cmd::CMD_CURRENT:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
-                                break;
-                            }
-                            case _Cmd::CMD_READ_MOTOR:
-                            {
-                                processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
-                                break;
-                            }
-                            default:{
-                                RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD for AUV7 pwr management");
-                            }
-                        }
                     }
                     
                 }

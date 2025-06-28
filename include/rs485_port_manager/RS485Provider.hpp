@@ -83,7 +83,6 @@ namespace rs485_port_manager
          * via the RS485 connection.
          */
         void pollKillMission();
-        void pollPower();
 
         /**
          * @brief Processes a actuator service request.
@@ -118,8 +117,6 @@ namespace rs485_port_manager
 
         sonia_common_cpp::SerialConn _rs485Connection;
 
-        rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
-        rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
@@ -140,7 +137,11 @@ namespace rs485_port_manager
 
         // all needed for the rework and the split
 
-        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
+        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriptionRS485;
+
+        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherKill;
+        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherIO;
+        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherMotor;
 
         void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
     };

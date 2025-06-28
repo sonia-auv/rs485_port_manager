@@ -6,7 +6,6 @@
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
 
-#include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/motor_feedback.hpp"
 #include "sonia_common_ros2/msg/motor_power_messages.hpp"
@@ -25,6 +24,10 @@ namespace module{
 
         private:
 
+        std::vector<uint8_t> psu_volt_array[4];
+        std::vector<uint8_t> psu_curr_array[4];
+        std::vector<uint8_t> psu_feed_array[4];
+
         const uint8_t nb_thruster = 8;
         const uint8_t nb_battery = 2;
 
@@ -33,6 +36,8 @@ namespace module{
         void publishBattery(uint8_t cmd, float *data);
 
         void publishMotorFeedback(std::vector<uint8_t> data);
+
+        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
 
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
         void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
@@ -54,6 +59,9 @@ namespace module{
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
+
+        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
+        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
 
         const char *auv;
 

@@ -5,6 +5,8 @@
 
 #include "Definition.hpp"
 
+#include "sonia_common_ros2/msg/rs485msg.hpp"
+
 namespace module
 {
 
@@ -17,12 +19,12 @@ namespace module
              * 
              * queue : Message to send by RS485
              */
-            void sendMessage(queueObject queue){};
+            virtual void sendMessage(queueObject queue){};
 
             /**
              * @brief Method to read message from rs485
              */
-            virtual void receiveMessage(const sonia_common_ros2::msg::RS485msg &msg){};
+            virtual void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){};
 
         private:
     };
