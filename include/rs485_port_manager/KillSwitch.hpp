@@ -12,11 +12,12 @@
 #include <condition_variable>
 #include <vector>
 
+#include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
 
-namespace kill_switch_port_manager
+namespace KillManager
 {
 
     /**
@@ -44,6 +45,8 @@ namespace kill_switch_port_manager
     class KillProvider : public rclcpp::Node
     {
         public:
+            KillProvider();
+            ~KillProvider();
 
         /**
          * @brief Kill all internal threads.
@@ -73,6 +76,7 @@ namespace kill_switch_port_manager
          */
 
         /* Used to publish the information of the Kill Switch */
+        sonia_common_cpp::SerialConn _rs485Connection;
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
     };

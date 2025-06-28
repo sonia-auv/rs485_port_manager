@@ -1,16 +1,16 @@
 #include "rs485_port_manager/KillSwitch.hpp"
 
-namespace kill_switch_port_manager
+namespace KillManager
 {
-    KillProvider::KillProvider()
-    : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
+    KillProvider::KillProvider() // Node constructor
+    : Node("rs485_kill_switch"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
-        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
+        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/kill_switch_rs485/kill_status", 10);
     }
-
-    RS485Provider::~RS485Provider() {}
-
-    // node destructor
+    KillProvider::~KillProvider() // Node destructor
+    {
+        
+    }
     bool KillProvider::OpenPort()
     {
         bool res = _rs485Connection.OpenPort();
@@ -20,7 +20,6 @@ namespace kill_switch_port_manager
         }
         return res;
     }
-
     void KillProvider::pollKillMission()
     {
         queueObject msg;
@@ -41,11 +40,10 @@ namespace kill_switch_port_manager
         _writerQueue.push_back(msg);
         _cvReaderWriter.notify_all();
     }
-
     void KillProvider::publishKill(bool status)
     {
         sonia_common_ros2::msg::KillStatus state;
         state.status = status;
-        _publisherKill->publish(state);
+        _publisherKill->publish(state.status);
     }
 }

@@ -421,7 +421,6 @@ namespace rs485_port_manager
     {
         
         std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
-        time_t timestamp;
 
         // close the thread.
         while (_thread_control)
