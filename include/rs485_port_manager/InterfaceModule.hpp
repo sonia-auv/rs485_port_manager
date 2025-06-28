@@ -3,42 +3,28 @@
 #include <stdio.h>
 #include <rclcpp/rclcpp.hpp>
 
-namespace interface_module
+#include "Definition.hpp"
+
+namespace module
 {
 
-    class InterfaceModule : public rclcpp::Node
+    class InterfaceModule
     {
         public:
 
-        /**
-         * @brief Kill all internal threads.
-         */
-        void Kill();
+            /**
+             * @brief method to send message to rs485
+             * 
+             * queue : Message to send by RS485
+             */
+            void sendMessage(queueObject queue){};
+
+            /**
+             * @brief Method to read message from rs485
+             */
+            virtual void receiveMessage(const sonia_common_ros2::msg::RS485msg &msg){};
 
         private:
-            /**
-             * @brief Internal Queue Object
-             *
-             */
-            struct queueObject
-            {
-                uint8_t slave;
-                uint8_t cmd;
-                std::vector<uint8_t> data;
-                void printTram()
-                {
-                    printf("%x ", slave);
-                    printf("%x ", cmd);
-                    for (size_t i = 0; i < data.size(); i++)
-                    {
-                        printf("%x ", data[i]);
-                    }
-                    
-                    printf("\n");
-                }
-            };
-
-            int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
-    }
+    };
 
 }

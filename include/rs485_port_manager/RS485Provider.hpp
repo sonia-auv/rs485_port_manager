@@ -14,38 +14,17 @@
 
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
-#include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
-#include "sonia_common_ros2/msg/motor_feedback.hpp"
-#include "sonia_common_ros2/msg/motor_power_messages.hpp"
-#include "sonia_common_ros2/msg/motor_pwm.hpp"
 #include "sonia_common_ros2/msg/serial_message.hpp"
+#include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 
+#include "Definition.hpp"
 
 
-    /**
-     * @brief Internal Queue Object
-     *
-     */
-    struct queueObject
-    {
-        uint8_t slave;
-        uint8_t cmd;
-        std::vector<uint8_t> data;
-        void printTram()
-        {
-            printf("%x ", slave);
-            printf("%x ", cmd);
-            for (size_t i = 0; i < data.size(); i++)
-            {
-                printf("%x ", data[i]);
-            }
-            
-            printf("\n");
-        }
-    };
+namespace rs485_port_manager
+{
 
     class RS485Provider : public rclcpp::Node
     {
@@ -66,44 +45,6 @@
         void Kill();
 
         private:
-        /**
-         * @brief Slave Ids
-         *
-         */
-        enum _SlaveId : uint8_t
-        {
-            SLAVE_PSU0 = 0,  // AUV7 Only
-            SLAVE_PSU1 = 1,  // AUV7 Only
-            SLAVE_PSU2 = 2,  // AUV7 Only
-            SLAVE_PSU3 = 3,  // AUV7 Only
-            SLAVE_KILLMISSION = 4,
-            SLAVE_ESC = 5,
-            SLAVE_IO = 6,
-            SLAVE_STATE_SCREEN = 7,
-            SLAVE_PWR_MANAGEMENT = 8,  // AUV8 Only
-        };
-
-        /**
-         * @brief Command Ids
-         *
-         */
-        enum _Cmd : uint8_t
-        {
-            CMD_MISSION = 0,
-            CMD_KILL = 1,
-            CMD_VOLTAGE = 0,
-            CMD_CURRENT = 1,
-            CMD_TEMPERATURE = 2,
-            CMD_READ_MOTOR = 15,
-            CMD_ACT_MOTOR = 16,
-            CMD_PWM = 17,
-            CMD_IO_TEMP = 0,
-            CMD_IO_DROPPER_ACTION = 1,
-            CMD_IO_TORPEDO_ACTION = 2,
-            CMD_IO_ARM_ACTION = 3,
-            CMD_IO_LEAK_SENSOR = 4,
-            CMD_KEEP_ALIVE = 30,
-        };
 
         /**
          * @brief Calculate Checksum.
@@ -153,9 +94,6 @@
         void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
-        void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
-        void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
-
         /**
          * @brief
          *
@@ -169,28 +107,6 @@
          * @param status
          */
         void publishMission(bool status);
-
-        void publishMotor(uint8_t cmd, std::vector<float> data);
-
-        void publishBattery(uint8_t cmd, float *data);
-
-        void publishMotorFeedback(std::vector<uint8_t> data);
-
-        void EnableDisableMotors(const std_msgs::msg::Bool &msg);
-        void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
-        void PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg);
-
-        int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
-
-        union _bytesToFloat
-        {
-            uint8_t bytes[4];
-            float_t value;
-        };
-        bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
-
-        const uint8_t nb_thruster = 8;
-        const uint8_t nb_battery = 2;
         static const int _DATA_READ_CHUNCK = 1024;
         const u_int8_t _START_BYTE = 0x3A;
         const u_int8_t _END_BYTE = 0x0D;
@@ -204,16 +120,6 @@
 
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
-        rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
-        rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryVoltages;
-        rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorCurrents;
-        rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryCurrents;
-        rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorTemperature;
-        rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryTemperature;
-        rclcpp::Publisher<sonia_common_ros2::msg::MotorFeedback>::SharedPtr _publisherMotorFeedback;
-        rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
-        rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
-        rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
@@ -227,16 +133,16 @@
 
         std::mutex _mtxWriter;
         std::condition_variable _cvReaderWriter;
-
-        rclcpp::CallbackGroup::SharedPtr group1;
         sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
         sonia_common_cpp::SharedQueue<uint8_t> _parseQueue;
 
         bool _thread_control;
 
-        uint8_t ESC_SLAVE;
+        // all needed for the rework and the split
 
-        const char *auv;
+        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
+
+        void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
     };
 
 }  // namespace sonia_hw_interface

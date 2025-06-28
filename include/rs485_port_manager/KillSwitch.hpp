@@ -13,30 +13,14 @@
 #include <vector>
 
 #include "sonia_common_cpp/SharedQueue.hpp"
+#include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
 
-    /**
-     * @brief Internal Queue Object
-     *
-     */
-    struct queueObject
-    {
-        uint8_t slave;
-        uint8_t cmd;
-        std::vector<uint8_t> data;
-        void printTram()
-        {
-            printf("%x ", slave);
-            printf("%x ", cmd);
-            for (size_t i = 0; i < data.size(); i++)
-            {
-                printf("%x ", data[i]);
-            }
-            
-            printf("\n");
-        }
-    };
+#include "Definition.hpp"
+
+namespace kill_switch_port_manager
+{
 
     class KillProvider : public rclcpp::Node
     {
@@ -46,6 +30,8 @@
          * @brief Kill all internal threads.
          */
         void Kill();
+        KillProvider();
+        ~KillProvider();
 
         private:
         /**
@@ -55,6 +41,14 @@
          * via the RS485 connection.
          */
         void pollKillMission();
+
+        /**
+         * @brief Open designated internal serial port.
+         *
+         * @return bool True if opened successfully else False.
+         */
+        bool OpenPort();
+
 
         /**
          * @brief
@@ -72,6 +66,10 @@
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
+        sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
+
+        sonia_common_cpp::SerialConn _rs485Connection;
+        bool _thread_control;
     };
 
 }  // namespace KillManager

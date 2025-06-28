@@ -8,7 +8,7 @@ namespace kill_switch_port_manager
         _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
     }
 
-    RS485Provider::~RS485Provider() {}
+    KillProvider::~KillProvider() {}
 
     // node destructor
     bool KillProvider::OpenPort()
@@ -30,7 +30,6 @@ namespace kill_switch_port_manager
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         msg.cmd = _Cmd::CMD_KILL;
         _writerQueue.push_back(msg);
-        _cvReaderWriter.notify_all();
         
         // Wait for a short duration to allow for processing... Embeded restriction
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -39,7 +38,6 @@ namespace kill_switch_port_manager
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         msg.cmd = _Cmd::CMD_MISSION;
         _writerQueue.push_back(msg);
-        _cvReaderWriter.notify_all();
     }
 
     void KillProvider::publishKill(bool status)
