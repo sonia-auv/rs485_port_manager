@@ -16,6 +16,9 @@
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
 
+namespace kill_switch_port_manager
+{
+
     /**
      * @brief Internal Queue Object
      *

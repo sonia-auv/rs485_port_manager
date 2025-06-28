@@ -23,6 +23,8 @@
 #include "sonia_common_ros2/msg/serial_message.hpp"
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 
+namespace rs485_port_manager
+{
 
 
     /**
@@ -239,4 +241,4 @@
         const char *auv;
     };
 
-}  // namespace sonia_hw_interface
+}
