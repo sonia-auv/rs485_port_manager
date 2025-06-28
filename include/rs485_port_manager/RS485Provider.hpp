@@ -145,4 +145,4 @@ namespace rs485_port_manager
         void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
     };
 
-}  // namespace sonia_hw_interface
+}

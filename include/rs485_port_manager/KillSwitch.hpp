@@ -12,19 +12,42 @@
 #include <condition_variable>
 #include <vector>
 
+#include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
 
-#include "Definition.hpp"
-
-namespace kill_switch_port_manager
+namespace KillManager
 {
+
+    /**
+     * @brief Internal Queue Object
+     *
+     */
+    struct queueObject
+    {
+        uint8_t slave;
+        uint8_t cmd;
+        std::vector<uint8_t> data;
+        void printTram()
+        {
+            printf("%x ", slave);
+            printf("%x ", cmd);
+            for (size_t i = 0; i < data.size(); i++)
+            {
+                printf("%x ", data[i]);
+            }
+            
+            printf("\n");
+        }
+    };
 
     class KillProvider : public rclcpp::Node
     {
         public:
+            KillProvider();
+            ~KillProvider();
 
         /**
          * @brief Kill all internal threads.
@@ -64,6 +87,7 @@ namespace kill_switch_port_manager
          */
 
         /* Used to publish the information of the Kill Switch */
+        sonia_common_cpp::SerialConn _rs485Connection;
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
         sonia_common_cpp::SharedQueue<queueObject> _writerQueue;
