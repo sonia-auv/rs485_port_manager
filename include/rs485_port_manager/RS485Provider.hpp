@@ -76,13 +76,6 @@ namespace rs485_port_manager
          */
         void parseData();
 
-        /**
-         * @brief Polls the status of kill and mission via RS485 connection.
-         *
-         * This function sends requests to retrieve the status of kill and mission
-         * via the RS485 connection.
-         */
-        void pollKillMission();
 
         /**
          * @brief Processes a actuator service request.
@@ -93,19 +86,6 @@ namespace rs485_port_manager
         void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
-        /**
-         * @brief
-         *
-         * @param status
-         */
-        void publishKill(bool status);
-
-        /**
-         * @brief
-         *
-         * @param status
-         */
-        void publishMission(bool status);
         static const int _DATA_READ_CHUNCK = 1024;
         const u_int8_t _START_BYTE = 0x3A;
         const u_int8_t _END_BYTE = 0x0D;
@@ -118,7 +98,6 @@ namespace rs485_port_manager
         sonia_common_cpp::SerialConn _rs485Connection;
 
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
-        rclcpp::TimerBase::SharedPtr _timerKillMission;
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
 
         std::thread _reader;

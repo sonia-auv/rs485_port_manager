@@ -20,7 +20,6 @@ namespace rs485_port_manager
 
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
             "/provider_actuator/do_action", std::bind(&RS485Provider::processActuatorRequest, this, _1, _2));
-        _timerKillMission = this->create_wall_timer(500ms, std::bind(&RS485Provider::pollKillMission, this));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
         
         _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
@@ -59,27 +58,6 @@ namespace rs485_port_manager
         ser.data = uint8Vector;
         
         _writerQueue.push_back(ser);
-        _cvReaderWriter.notify_all();
-    }
-
-    void RS485Provider::pollKillMission()
-    {
-        queueObject msg;
-        msg.data.push_back(0x00);
-
-        // Transmit request to get kill status
-        msg.slave = _SlaveId::SLAVE_KILLMISSION;
-        msg.cmd = _Cmd::CMD_KILL;
-        _writerQueue.push_back(msg);
-        _cvReaderWriter.notify_all();
-        
-        // Wait for a short duration to allow for processing... Embeded restriction
-        std::this_thread::sleep_for(std::chrono::milliseconds(300));
-        
-        // Transmit request to get mission status
-        msg.slave = _SlaveId::SLAVE_KILLMISSION;
-        msg.cmd = _Cmd::CMD_MISSION;
-        _writerQueue.push_back(msg);
         _cvReaderWriter.notify_all();
     }
 
@@ -128,18 +106,6 @@ namespace rs485_port_manager
                 response->success = false;
                 break;
         }         
-    }
-
-    void RS485Provider::publishKill(bool status)
-    {
-        sonia_common_ros2::msg::KillStatus state;
-        state.status = status;
-    }
-
-    void RS485Provider::publishMission(bool status)
-    {
-        sonia_common_ros2::msg::MissionStatus state;
-        state.status = status;
     }
 
     void RS485Provider::readData()
