@@ -11,7 +11,7 @@ namespace module
         _publishers485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/msgToSend", 10);
         _publisherMission =
             this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
-        _timerKillMission = this->create_wall_timer(500ms, std::bind(&ĶillProvider::pollKillMission, this));
+        _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillProvider::pollKillMission, this));
     }
     KillProvider::~KillProvider() {}
 

@@ -75,6 +75,6 @@ namespace module{
 
         int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
 
-        void sendMessage(queueObject queue){};
+        void sendMessage(queueObject queue) override;
     };
 }
