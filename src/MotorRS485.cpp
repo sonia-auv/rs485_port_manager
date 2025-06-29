@@ -70,6 +70,16 @@ namespace module{
     // node destructor
     MotorRS485::~MotorRS485() {}
 
+    void MotorRS485::sendMessage(queueObject queue){
+        sonia_common_ros2::msg::RS485msg msgRS485 = sonia_common_ros2::msg::RS485msg();
+
+        msgRS485.cmd = queue.cmd;
+        msgRS485.slave = queue.slave;
+        msgRS485.data = queue.data;
+
+        _publisherRS485->publish(msgRS485);
+    }
+
     void MotorRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){
 
         queueObject ser;
@@ -194,6 +204,8 @@ namespace module{
             case _SlaveId::SLAVE_PWR_MANAGEMENT:
                 ser.slave = ESC_SLAVE;
                 ToggleMotors(msg.data, nb_thruster, ser.data);
+
+                sendMessage(ser);
                 break;
             // AUV7 motor control
             case _SlaveId::SLAVE_ESC:
@@ -201,17 +213,25 @@ namespace module{
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
+                sendMessage(ser);
+
                 ser.slave = _SlaveId::SLAVE_PSU1;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+
+                sendMessage(ser);
 
                 ser.slave = _SlaveId::SLAVE_PSU2;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
+                sendMessage(ser);
+
                 ser.slave = _SlaveId::SLAVE_PSU3;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+
+                sendMessage(ser);
                 break;
             default:
                 break;
@@ -266,7 +286,8 @@ namespace module{
 
         ser.data.push_back(msg.motor8 >> 8);
         ser.data.push_back(msg.motor8 & 0xFF);
-        
+
+        sendMessage(ser);
     }
 
     void MotorRS485::publishMotor(uint8_t cmd, std::vector<float> data)
