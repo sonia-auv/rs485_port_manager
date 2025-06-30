@@ -17,14 +17,11 @@ namespace rs485_port_manager
         _reader = std::thread(std::bind(&RS485Provider::readData, this));
         _writer = std::thread(std::bind(&RS485Provider::writeData, this));
         _parser = std::thread(std::bind(&RS485Provider::parseData, this));
-
-        _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
-            "/provider_actuator/do_action", std::bind(&RS485Provider::processActuatorRequest, this, _1, _2));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
         
         _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10, std::bind(&RS485Provider::RS485callback, this, _1), sub_opt);
-        
+
         _publisherKill = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10);
         _publisherIO = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/ioMessage", 10);
         _publisherMotor = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10);
@@ -74,39 +71,6 @@ namespace rs485_port_manager
 
     void RS485Provider::Kill() { _thread_control = false; }
 
-    void RS485Provider::processActuatorRequest(
-        const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
-        std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response)
-    {
-        // Variables for transmission status and data vector
-        queueObject ser;
-        ser.slave=_SlaveId::SLAVE_IO;
-        
-        switch (request->element){
-            case  sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_DROPPER:
-            {
-                ser.cmd=_Cmd::CMD_IO_DROPPER_ACTION;
-                ser.data.push_back(request->side);
-                _writerQueue.push_back(ser);
-                _cvReaderWriter.notify_all();
-                response->success = true;
-                break;
-            }
-            case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_TORPEDO:
-            {
-                ser.cmd=_Cmd::CMD_IO_TORPEDO_ACTION;
-                ser.data.push_back(request->side);
-                _writerQueue.push_back(ser);
-                _cvReaderWriter.notify_all();
-                response->success = true;
-                break;
-            }
-            default:
-                std::cerr << "ERROR in element. Unknown element" << std::endl;
-                response->success = false;
-                break;
-        }         
-    }
 
     void RS485Provider::readData()
     {
@@ -124,7 +88,6 @@ namespace rs485_port_manager
                 {
                     _parseQueue.push_back((uint8_t)data[i]);
                 }
-                
                 _cvReaderParser.notify_all();
             }
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -133,7 +96,6 @@ namespace rs485_port_manager
 
     void RS485Provider::writeData()
     {
-        
         std::unique_lock<std::mutex> _lockWriter(_mtxWriter);
 
         // close the thread.

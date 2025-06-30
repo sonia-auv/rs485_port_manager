@@ -18,7 +18,6 @@
 #include "sonia_common_ros2/msg/mission_status.hpp"
 #include "sonia_common_ros2/msg/serial_message.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
-#include "sonia_common_ros2/srv/actuator_service.hpp"
 
 #include "Definition.hpp"
 
@@ -77,15 +76,6 @@ namespace rs485_port_manager
         void parseData();
 
 
-        /**
-         * @brief Processes a actuator service request.
-         *
-         * @param request
-         * @param response
-         */
-        void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
-                                   std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
-
         static const int _DATA_READ_CHUNCK = 1024;
         const u_int8_t _START_BYTE = 0x3A;
         const u_int8_t _END_BYTE = 0x0D;
@@ -97,7 +87,7 @@ namespace rs485_port_manager
 
         sonia_common_cpp::SerialConn _rs485Connection;
 
-        rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
+       
         rclcpp::TimerBase::SharedPtr _timerPowerRequest;
 
         std::thread _reader;

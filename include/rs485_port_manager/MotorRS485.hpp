@@ -59,10 +59,11 @@ namespace module{
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
-
+        
         rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
 
+    
         const char *auv;
 
         uint8_t ESC_SLAVE;

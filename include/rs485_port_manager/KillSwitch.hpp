@@ -77,10 +77,12 @@ namespace module
          */
 
         /* Used to publish the information of the Kill Switch */
+        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr  _subscriberKill;
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
+        rclcpp::CallbackGroup::SharedPtr group1;
     };
 
 }  // namespace KillManager

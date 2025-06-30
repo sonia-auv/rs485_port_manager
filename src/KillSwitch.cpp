@@ -1,16 +1,24 @@
 #include "rs485_port_manager/KillSwitch.hpp"
 
 using namespace std::chrono_literals;
+using std::placeholders::_1;
+using std::placeholders::_2;
 
 namespace module
 {
     KillProvider::KillProvider() // Node constructor
     : Node("rs485_kill_switch")
     {
+        group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        auto sub_opt = rclcpp::SubscriptionOptions();
+        sub_opt.callback_group = group1;
+
         _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/kill_switch_rs485/kill_status", 10);
         _publishers485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/msgToSend", 10);
         _publisherMission =
             this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
+        _subscriberKill = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10, 
+            std::bind(&KillProvider::messageRS485CallBack, this, _1), sub_opt);
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillProvider::pollKillMission, this));
     }
     KillProvider::~KillProvider() {}
@@ -33,7 +41,7 @@ namespace module
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         msg.cmd = _Cmd::CMD_KILL;
         
-        // sendMessage(msg);
+        sendMessage(msg);
 
         // Wait for a short duration to allow for processing... Embeded restriction
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -42,7 +50,7 @@ namespace module
         msg.slave = _SlaveId::SLAVE_KILLMISSION;
         msg.cmd = _Cmd::CMD_MISSION;
 
-        // sendMessage(msg);
+        sendMessage(msg);
     }
     void KillProvider::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
     {
