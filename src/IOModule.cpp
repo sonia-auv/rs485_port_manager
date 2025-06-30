@@ -8,7 +8,7 @@ using std::placeholders::_2;
 namespace rs485_port_manager
 {
     IOModule::IOModule() // Node constructor
-    : Node("rs485_kill_switch")
+    : Node("rs485_io_module")
     {
 
         _publishers485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/msgToSend", 10);
