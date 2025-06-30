@@ -154,9 +154,9 @@ namespace rs485_port_manager
                 // pop the unused start data
                 _parseQueue.pop_front();
 
+                msgRS485.slave =  _parseQueue.get_n_pop_front();
                 msgRS485.cmd =  _parseQueue.get_n_pop_front();
 
-                msgRS485.slave =  _parseQueue.get_n_pop_front();
                 uint8_t nbByte = _parseQueue.get_n_pop_front();
 
                 for (int i = 0; i < nbByte; i++)
