@@ -14,9 +14,6 @@
 
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
-#include "sonia_common_ros2/msg/kill_status.hpp"
-#include "sonia_common_ros2/msg/mission_status.hpp"
-#include "sonia_common_ros2/msg/serial_message.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 
 #include "Definition.hpp"
@@ -75,6 +72,7 @@ namespace rs485_port_manager
          */
         void parseData();
 
+        void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
 
         static const int _DATA_READ_CHUNCK = 1024;
         const u_int8_t _START_BYTE = 0x3A;
@@ -111,8 +109,6 @@ namespace rs485_port_manager
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherKill;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherIO;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherMotor;
-
-        void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
     };
 
 }

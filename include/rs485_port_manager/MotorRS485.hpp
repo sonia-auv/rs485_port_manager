@@ -11,11 +11,11 @@
 #include "sonia_common_ros2/msg/motor_power_messages.hpp"
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
 
-#include "InterfaceModule.hpp"
+#include "InterfaceModuleRS485.hpp"
 
-namespace module{
+namespace rs485_port_manager{
 
-    class MotorRS485 : InterfaceModule, public rclcpp::Node
+    class MotorRS485 : InterfaceModuleRS485, public rclcpp::Node
     {
         public:
 
@@ -47,8 +47,7 @@ namespace module{
         void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
         bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
-
-        rclcpp::CallbackGroup::SharedPtr group1;
+        
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorCurrents;
@@ -62,9 +61,6 @@ namespace module{
         
         rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
-
-    
-        const char *auv;
 
         uint8_t ESC_SLAVE;
 

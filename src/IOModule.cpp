@@ -5,7 +5,7 @@ using namespace std::chrono_literals;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-namespace module
+namespace rs485_port_manager
 {
     IOModule::IOModule() // Node constructor
     : Node("rs485_kill_switch")
@@ -60,7 +60,7 @@ namespace module
         _publishers485->publish(to_return);
     }
 
-    void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
+    void IOModule::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
     {
 
     }

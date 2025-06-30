@@ -7,10 +7,10 @@
 
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 
-namespace module
+namespace rs485_port_manager
 {
 
-    class InterfaceModule
+    class InterfaceModuleRS485
     {
         public:
 

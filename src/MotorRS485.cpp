@@ -4,14 +4,14 @@ using std::placeholders::_1;
 using std::placeholders::_2;
 using namespace std::chrono_literals;
 
-namespace module{
+namespace rs485_port_manager{
 
 
     MotorRS485::MotorRS485() 
     : Node("motorRS485_provider"){
         try
         {
-            auv = std::getenv("AUV");
+            const char *auv = std::getenv("AUV");
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
             {
                 ESC_SLAVE = _SlaveId::SLAVE_PWR_MANAGEMENT;
@@ -34,7 +34,7 @@ namespace module{
             ESC_SLAVE = _SlaveId::SLAVE_ESC;
         }
 
-        group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        rclcpp::CallbackGroup::SharedPtr group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = group1;
 
