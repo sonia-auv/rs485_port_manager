@@ -52,7 +52,7 @@ namespace rs485_port_manager
         
         std::transform(msg.data.begin(), msg.data.end(), uint8Vector.begin(),
                    [](char c) { return static_cast<uint8_t>(c); });
-        ser.data = uint8Vector;
+        ser.data = msg.data;
         
         _writerQueue.push_back(ser);
         _cvReaderWriter.notify_all();

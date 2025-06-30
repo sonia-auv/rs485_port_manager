@@ -11,12 +11,12 @@
 
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
-#include "InterfaceModule.hpp"
+#include "InterfaceModuleRS485.hpp"
 
-namespace module
+namespace rs485_port_manager
 {
 
-    class IOModule : public rclcpp::Node, InterfaceModule
+    class IOModule : InterfaceModuleRS485, public rclcpp::Node
     {
         
         public:

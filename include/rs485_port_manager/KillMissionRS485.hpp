@@ -16,17 +16,18 @@
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_ros2/msg/kill_status.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
-#include "InterfaceModule.hpp"
+#include "InterfaceModuleRS485.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
-namespace module
+
+namespace rs485_port_manager
 {
 
-    class KillProvider : public rclcpp::Node, InterfaceModule
+    class KillMissionRS485 : public rclcpp::Node, InterfaceModuleRS485
     {
         
         public:
-            KillProvider();
-            ~KillProvider();
+            KillMissionRS485();
+            ~KillMissionRS485();
 
         /**
          * @brief Kill all internal threads.
@@ -82,7 +83,6 @@ namespace module
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
-        rclcpp::CallbackGroup::SharedPtr group1;
     };
 
 }  // namespace KillManager

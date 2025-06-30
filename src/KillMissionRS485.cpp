@@ -1,15 +1,15 @@
-#include "rs485_port_manager/KillSwitch.hpp"
+#include "rs485_port_manager/KillMissionRS485.hpp"
 
 using namespace std::chrono_literals;
 using std::placeholders::_1;
 using std::placeholders::_2;
 
-namespace module
+namespace rs485_port_manager
 {
-    KillProvider::KillProvider() // Node constructor
+    KillMissionRS485::KillMissionRS485() // Node constructor
     : Node("rs485_kill_switch")
     {
-        group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+        rclcpp::CallbackGroup::SharedPtr group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = group1;
 
@@ -18,12 +18,12 @@ namespace module
         _publisherMission =
             this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
         _subscriberKill = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10, 
-            std::bind(&KillProvider::messageRS485CallBack, this, _1), sub_opt);
-        _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillProvider::pollKillMission, this));
+            std::bind(&KillMissionRS485::messageRS485CallBack, this, _1), sub_opt);
+        _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillMissionRS485::pollKillMission, this));
     }
-    KillProvider::~KillProvider() {}
+    KillMissionRS485::~KillMissionRS485() {}
 
-    void KillProvider::sendMessage(queueObject queue)
+    void KillMissionRS485::sendMessage(queueObject queue)
     {
         auto to_return = sonia_common_ros2::msg::RS485msg();
         to_return.slave = queue.slave;
@@ -32,7 +32,7 @@ namespace module
 
         _publishers485->publish(to_return);
     }
-    void KillProvider::pollKillMission()
+    void KillMissionRS485::pollKillMission()
     {
         queueObject msg;
         msg.data.push_back(0x00);
@@ -52,7 +52,7 @@ namespace module
 
         sendMessage(msg);
     }
-    void KillProvider::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
+    void KillMissionRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
     {
         queueObject ser;
         ser.cmd = msg.cmd;
@@ -80,13 +80,13 @@ namespace module
         }
 
     }
-    void KillProvider::publishKill(bool status)
+    void KillMissionRS485::publishKill(bool status)
     {
         sonia_common_ros2::msg::KillStatus state;
         state.status = status;
         _publisherKill->publish(state);
     }
-    void KillProvider::publishMission(bool status)
+    void KillMissionRS485::publishMission(bool status)
     {
         sonia_common_ros2::msg::MissionStatus state;
         state.status = status;
