@@ -16,7 +16,7 @@
 #include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 
-#include "Definition.hpp"
+#include "CommonDefinitionRS485.hpp"
 
 
 namespace rs485_port_manager

@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <rclcpp/rclcpp.hpp>
 
-#include "Definition.hpp"
+#include "CommonDefinitionRS485.hpp"
 
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 
