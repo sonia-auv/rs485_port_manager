@@ -10,15 +10,11 @@ namespace rs485_port_manager
     RS485Provider::RS485Provider()
         : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
-
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-        _reader = std::thread(std::bind(&RS485Provider::readData, this));
-        _writer = std::thread(std::bind(&RS485Provider::writeData, this));
-        _parser = std::thread(std::bind(&RS485Provider::parseData, this));
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
-        
+
         _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10, std::bind(&RS485Provider::RS485callback, this, _1), sub_opt);
 
@@ -28,7 +24,15 @@ namespace rs485_port_manager
     }
 
     // node destructor
-    RS485Provider::~RS485Provider() {}
+    RS485Provider::~RS485Provider()
+    {
+    }
+
+    void RS485Provider::Start() {
+        _reader = std::thread(std::bind(&RS485Provider::readData, this));
+        _writer = std::thread(std::bind(&RS485Provider::writeData, this));
+        _parser = std::thread(std::bind(&RS485Provider::parseData, this));
+    }
 
     bool RS485Provider::OpenPort()
     {
@@ -46,13 +50,13 @@ namespace rs485_port_manager
         ser.cmd = msg.cmd;
         ser.slave = msg.slave;
         ser.data = msg.data;
-        
+
         _writerQueue.push_back(ser);
         _cvReaderWriter.notify_all();
     }
 
     std::tuple<uint8_t, uint8_t> RS485Provider::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
-                                                          std::vector<uint8_t> data)
+                                                         std::vector<uint8_t> data)
     {
         uint16_t check = (uint16_t)(_START_BYTE + slave + cmd + nbByte + _END_BYTE);
         for (uint8_t i = 0; i < nbByte; i++)
@@ -62,7 +66,23 @@ namespace rs485_port_manager
         return {check >> 8, check & 0XFF};
     }
 
-    void RS485Provider::Kill() { _thread_control = false; }
+    void RS485Provider::Kill()
+    {
+        try
+        {
+            _rs485Connection.Flush();
+            _thread_control = false;
+            _mtxWriter.unlock();
+            _mtxParser.unlock();
+            _writerQueue.push_back(queueObject());
+            _cvReaderWriter.notify_all();
+            _cvReaderParser.notify_all();
+        }
+        catch (error_t)
+        {
+            printf("Something went wrong\n");
+        }
+    }
 
 
     void RS485Provider::readData()
@@ -95,7 +115,7 @@ namespace rs485_port_manager
         while (_thread_control)
         {
             // read until the start there or the queue is empty
-            _cvReaderWriter.wait(_lockWriter, [&]{ return !_writerQueue.empty(); });
+            _cvReaderWriter.wait(_lockWriter, [&] { return !_writerQueue.empty(); });
 
             queueObject msg = _writerQueue.get_n_pop_front();
             const size_t data_size = msg.data.size() + 7;
@@ -132,9 +152,8 @@ namespace rs485_port_manager
 
         while (_thread_control)
         {
-            
-        // read until the start there or the queue is empty
-        _cvReaderParser.wait(_lockParser, [&]{ return !_parseQueue.empty(); });
+            // read until the start there or the queue is empty
+            _cvReaderParser.wait(_lockParser, [&] { return !_parseQueue.empty(); });
             // check if the bit is the start bit:
             if (_parseQueue.front() != _START_BYTE)
             {
@@ -147,8 +166,8 @@ namespace rs485_port_manager
                 // pop the unused start data
                 _parseQueue.pop_front();
 
-                msgRS485.slave =  _parseQueue.get_n_pop_front();
-                msgRS485.cmd =  _parseQueue.get_n_pop_front();
+                msgRS485.slave = _parseQueue.get_n_pop_front();
+                msgRS485.cmd = _parseQueue.get_n_pop_front();
 
                 uint8_t nbByte = _parseQueue.get_n_pop_front();
 
@@ -163,7 +182,8 @@ namespace rs485_port_manager
                 // pop the unused end data
                 _parseQueue.pop_front();
 
-                std::tuple<uint8_t, uint8_t> calc_checksum = checkSum(msgRS485.slave, msgRS485.cmd, nbByte, msgRS485.data);
+                std::tuple<uint8_t, uint8_t> calc_checksum =
+                    checkSum(msgRS485.slave, msgRS485.cmd, nbByte, msgRS485.data);
                 // if the checksum is bad, drop the packet
                 if (checkResult == calc_checksum)
                 {
@@ -187,7 +207,6 @@ namespace rs485_port_manager
                             RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msgRS485.slave);
                             break;
                     }
-                    
                 }
                 // packet dropped
             }

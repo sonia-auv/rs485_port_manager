@@ -40,6 +40,11 @@ namespace rs485_port_manager
          */
         void Kill();
 
+        /**
+         * @brief Start System
+         */
+        void Start();
+
         private:
 
         /**
