@@ -16,7 +16,7 @@ namespace rs485_port_manager
         // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
 
         _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
-            "/rs485/msgToSend", 10, std::bind(&RS485Provider::RS485callback, this, _1), sub_opt);
+            "/rs485/msgToSend", 10, std::bind(&RS485Provider::messageRS485CallBack, this, _1), sub_opt);
 
         _publisherKill = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10);
         _publisherIO = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/ioMessage", 10);
@@ -44,7 +44,7 @@ namespace rs485_port_manager
         return res;
     }
 
-    void RS485Provider::RS485callback(const sonia_common_ros2::msg::RS485msg &msg)
+    void RS485Provider::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
     {
         queueObject ser;
         ser.cmd = msg.cmd;

@@ -33,9 +33,9 @@ namespace rs485_port_manager{
 
         void publishMotor(uint8_t cmd, std::vector<float> data);
 
-        void publishBattery(uint8_t cmd, float *data);
-
         void publishMotorFeedback(std::vector<uint8_t> data);
+
+        void publishBattery(uint8_t cmd, float *data);
 
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
 
@@ -51,8 +51,18 @@ namespace rs485_port_manager{
 
         int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
 
+        /**
+         * @brief method to send message to rs485
+         *
+         * @param queue the queueObject to send to RS485
+         */
         void sendMessage(queueObject queue) override;
 
+        /**
+         * @brief Method to read message from rs485
+         *
+         * @param msg the message from RS485
+         */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
         
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;

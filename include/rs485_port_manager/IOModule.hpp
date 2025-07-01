@@ -29,23 +29,23 @@ namespace rs485_port_manager
         /**
          * @brief Processes a actuator service request.
          *
-         * @param request
-         * @param response
+         * @param request message to actiavte a IO and data to Send
+         * @param response if the message was correctly send by RS485
          */
         void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         /**
-         * @brief
+         * @brief method to send message to rs485
          *
-         * @param queue
+         * @param queue the queueObject to send to RS485
          */
         void sendMessage(queueObject queue) override;
 
         /**
-         * @brief
+         * @brief Method to read message from rs485
          *
-         * @param msg
+         * @param msg the message from RS485
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 

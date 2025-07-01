@@ -77,7 +77,7 @@ namespace rs485_port_manager
          */
         void parseData();
 
-        void RS485callback(const sonia_common_ros2::msg::RS485msg &msg);
+        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
 
         static const int _DATA_READ_CHUNCK = 1024;
         const u_int8_t _START_BYTE = 0x3A;
