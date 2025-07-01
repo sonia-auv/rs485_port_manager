@@ -19,14 +19,12 @@ namespace rs485_port_manager
              * 
              * queue : Message to send by RS485
              */
-            virtual void sendMessage(queueObject queue){};
+            virtual void sendMessage(queueObject queue)=0;
 
             /**
              * @brief Method to read message from rs485
              */
-            virtual void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){};
-
-        private:
+            virtual void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)=0;
     };
 
 }

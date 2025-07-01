@@ -38,7 +38,7 @@ namespace rs485_port_manager
         /**
          * @brief
          *
-         * @param status
+         * @param queue
          */
         void sendMessage(queueObject queue) override;
 
@@ -47,7 +47,7 @@ namespace rs485_port_manager
          *
          * @param msg
          */
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
+        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;

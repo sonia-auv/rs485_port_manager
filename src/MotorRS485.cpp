@@ -14,29 +14,25 @@ namespace rs485_port_manager{
             const char *auv = std::getenv("AUV");
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
             {
-                ESC_SLAVE = _SlaveId::SLAVE_PWR_MANAGEMENT;
+                ESC_SLAVE = SlaveId::SLAVE_PWR_MANAGEMENT;
                 RCLCPP_INFO(this->get_logger(), "Using AUV8 port");
             }
             else if(strcmp(auv, "AUV7")==0)
             {
-                ESC_SLAVE = _SlaveId::SLAVE_ESC;
+                ESC_SLAVE = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
             }
             else 
             {
-                ESC_SLAVE = _SlaveId::SLAVE_ESC;
+                ESC_SLAVE = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using default port AUV7");
             }
 
         }
         catch (...)
         {
-            ESC_SLAVE = _SlaveId::SLAVE_ESC;
+            ESC_SLAVE = SlaveId::SLAVE_ESC;
         }
-
-        rclcpp::CallbackGroup::SharedPtr group1 = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-        auto sub_opt = rclcpp::SubscriptionOptions();
-        sub_opt.callback_group = group1;
 
         _publisherMotorVoltages =
             this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_voltages", 10);
@@ -56,15 +52,15 @@ namespace rs485_port_manager{
         _publisherThrusterPwm =
             this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
         _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
-            "/provider_thruster/thruster_pwm", 10, std::bind(&MotorRS485::PwmCallback, this, _1), sub_opt);
+            "/provider_thruster/thruster_pwm", 10, std::bind(&MotorRS485::PwmCallback, this, _1));
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
-            "/provider_power/activate_motors", 10, std::bind(&MotorRS485::EnableDisableMotors, this, _1), sub_opt);
+            "/provider_power/activate_motors", 10, std::bind(&MotorRS485::EnableDisableMotors, this, _1));
         
         _publisherRS485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10);
 
         _subscriberMotor = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10
-                , std::bind(&MotorRS485::messageRS485CallBack, this, _1), sub_opt);
+                , std::bind(&MotorRS485::messageRS485CallBack, this, _1));
     }
 
     // node destructor
@@ -95,21 +91,21 @@ namespace rs485_port_manager{
         ser.data = uint8Vector;
         switch (ser.slave)
         {
-            case _SlaveId::SLAVE_PWR_MANAGEMENT:
+            case SlaveId::SLAVE_PWR_MANAGEMENT:
                 processPowerManagement(ser.cmd, ser.data);
                 break;
-            case _SlaveId::SLAVE_PSU0:
+            case SlaveId::SLAVE_PSU0:
             {
                 //Motor 1 and Motor 5
                 switch (ser.cmd)
                 {
-                    case _Cmd::CMD_VOLTAGE:
+                    case Cmd::CMD_VOLTAGE:
                         psu_volt_array[0]=ser.data;
                         break;
-                    case _Cmd::CMD_CURRENT:
+                    case Cmd::CMD_CURRENT:
                         psu_curr_array[0]=ser.data;
                         break;
-                    case _Cmd::CMD_READ_MOTOR:
+                    case Cmd::CMD_READ_MOTOR:
                         psu_feed_array[0]=ser.data;
                         break;                                        
                     default:
@@ -117,48 +113,48 @@ namespace rs485_port_manager{
                 }//end switch case
                 break;
             }
-            case _SlaveId::SLAVE_PSU1:
+            case SlaveId::SLAVE_PSU1:
             {
                 //Motor 2 and Motor 6
                 switch (ser.cmd)
                 {
-                    case _Cmd::CMD_VOLTAGE: psu_volt_array[1]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[1]=ser.data;
                         break;
-                    case _Cmd::CMD_CURRENT: psu_curr_array[1]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[1]=ser.data;
                         break;
-                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=ser.data;
                         break;                                        
                     default:
                         break;
                 }//end switch case
                 break;
             }
-            case _SlaveId::SLAVE_PSU2:
+            case SlaveId::SLAVE_PSU2:
             {
                 //Motor 3 and Motor 7
                 switch (msg.cmd)
                 {
-                    case _Cmd::CMD_VOLTAGE: psu_volt_array[2]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[2]=ser.data;
                         break;
-                    case _Cmd::CMD_CURRENT: psu_curr_array[2]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[2]=ser.data;
                         break;
-                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=ser.data;
                         break;                                        
                     default:
                         break;
                 }//end switch case
                 break;
             }
-            case _SlaveId::SLAVE_PSU3:
+            case SlaveId::SLAVE_PSU3:
             {
                 //Motor 4 and Motor 8
                 switch (msg.cmd)
                 {
-                    case _Cmd::CMD_VOLTAGE: psu_volt_array[3]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[3]=ser.data;
                         break;
-                    case _Cmd::CMD_CURRENT: psu_curr_array[3]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[3]=ser.data;
                         break;
-                    case _Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=ser.data;
                         break;                                        
                     default:
                         break;
@@ -170,21 +166,21 @@ namespace rs485_port_manager{
                 break;
         }
         
-        if(ser.slave==_SlaveId::SLAVE_PSU0 || ser.slave==_SlaveId::SLAVE_PSU1 || ser.slave==_SlaveId::SLAVE_PSU2 || ser.slave==_SlaveId::SLAVE_PSU3 ){
+        if(ser.slave==SlaveId::SLAVE_PSU0 || ser.slave==SlaveId::SLAVE_PSU1 || ser.slave==SlaveId::SLAVE_PSU2 || ser.slave==SlaveId::SLAVE_PSU3 ){
                 switch(ser.cmd){
-                    case _Cmd::CMD_VOLTAGE:
+                    case Cmd::CMD_VOLTAGE:
                     {
-                        processAUV7PowerManagement(_Cmd::CMD_VOLTAGE, psu_volt_array);
+                        processAUV7PowerManagement(Cmd::CMD_VOLTAGE, psu_volt_array);
                         break;
                     }
-                    case _Cmd::CMD_CURRENT:
+                    case Cmd::CMD_CURRENT:
                     {
-                        processAUV7PowerManagement(_Cmd::CMD_CURRENT, psu_curr_array); 
+                        processAUV7PowerManagement(Cmd::CMD_CURRENT, psu_curr_array); 
                         break;
                     }
-                    case _Cmd::CMD_READ_MOTOR:
+                    case Cmd::CMD_READ_MOTOR:
                     {
-                        processAUV7PowerManagement(_Cmd::CMD_READ_MOTOR, psu_feed_array); 
+                        processAUV7PowerManagement(Cmd::CMD_READ_MOTOR, psu_feed_array); 
                         break;
                     }
                     default:{
@@ -197,37 +193,37 @@ namespace rs485_port_manager{
     void MotorRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
         queueObject ser;
-        ser.cmd = _Cmd::CMD_ACT_MOTOR;
+        ser.cmd = Cmd::CMD_ACT_MOTOR;
         switch (ESC_SLAVE)
         {
             // AUV8 motor control
-            case _SlaveId::SLAVE_PWR_MANAGEMENT:
+            case SlaveId::SLAVE_PWR_MANAGEMENT:
                 ser.slave = ESC_SLAVE;
                 ToggleMotors(msg.data, nb_thruster, ser.data);
 
                 sendMessage(ser);
                 break;
             // AUV7 motor control
-            case _SlaveId::SLAVE_ESC:
-                ser.slave = _SlaveId::SLAVE_PSU0;
+            case SlaveId::SLAVE_ESC:
+                ser.slave = SlaveId::SLAVE_PSU0;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
                 sendMessage(ser);
 
-                ser.slave = _SlaveId::SLAVE_PSU1;
+                ser.slave = SlaveId::SLAVE_PSU1;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
                 sendMessage(ser);
 
-                ser.slave = _SlaveId::SLAVE_PSU2;
+                ser.slave = SlaveId::SLAVE_PSU2;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
                 sendMessage(ser);
 
-                ser.slave = _SlaveId::SLAVE_PSU3;
+                ser.slave = SlaveId::SLAVE_PSU3;
                 ser.data.clear();
                 ToggleMotors(msg.data, nb_thruster / 4, ser.data);
 
@@ -259,7 +255,7 @@ namespace rs485_port_manager{
     void MotorRS485::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
     {
         queueObject ser;
-        ser.cmd = _Cmd::CMD_PWM;
+        ser.cmd = Cmd::CMD_PWM;
         ser.slave = ESC_SLAVE;
         ser.data.clear();
         
@@ -304,13 +300,13 @@ namespace rs485_port_manager{
 
         switch (cmd)
         {
-            case _Cmd::CMD_VOLTAGE:
+            case Cmd::CMD_VOLTAGE:
                 _publisherMotorVoltages->publish(msg);
                 break;
-            case _Cmd::CMD_CURRENT:
+            case Cmd::CMD_CURRENT:
                 _publisherMotorCurrents->publish(msg);
                 break;
-            case _Cmd::CMD_TEMPERATURE:
+            case Cmd::CMD_TEMPERATURE:
                 _publisherMotorTemperature->publish(msg);
                 break;
             default:
@@ -326,13 +322,13 @@ namespace rs485_port_manager{
 
         switch (cmd)
         {
-            case _Cmd::CMD_VOLTAGE:
+            case Cmd::CMD_VOLTAGE:
                 _publisherBatteryVoltages->publish(msg);
                 break;
-            case _Cmd::CMD_CURRENT:
+            case Cmd::CMD_CURRENT:
                 _publisherBatteryCurrents->publish(msg);
                 break;
-            case _Cmd::CMD_TEMPERATURE:
+            case Cmd::CMD_TEMPERATURE:
                 _publisherBatteryTemperature->publish(msg);
                 break;
             default:
@@ -369,7 +365,7 @@ namespace rs485_port_manager{
 
         switch (cmd)
         {
-            case _Cmd::CMD_VOLTAGE:
+            case Cmd::CMD_VOLTAGE:
 
                 if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
                 {
@@ -382,11 +378,11 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(_Cmd::CMD_VOLTAGE, motorData);
-                publishBattery(_Cmd::CMD_VOLTAGE, batteryData);
+                publishMotor(Cmd::CMD_VOLTAGE, motorData);
+                publishBattery(Cmd::CMD_VOLTAGE, batteryData);
 
                 break;
-            case _Cmd::CMD_CURRENT:
+            case Cmd::CMD_CURRENT:
 
                 if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
                 {
@@ -399,10 +395,10 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(_Cmd::CMD_CURRENT, motorData);
-                publishBattery(_Cmd::CMD_CURRENT, batteryData);
+                publishMotor(Cmd::CMD_CURRENT, motorData);
+                publishBattery(Cmd::CMD_CURRENT, batteryData);
                 break;
-            case _Cmd::CMD_TEMPERATURE:
+            case Cmd::CMD_TEMPERATURE:
 
                 if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
                 {
@@ -415,10 +411,10 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(_Cmd::CMD_TEMPERATURE, motorData);
-                publishBattery(_Cmd::CMD_TEMPERATURE, batteryData);
+                publishMotor(Cmd::CMD_TEMPERATURE, motorData);
+                publishBattery(Cmd::CMD_TEMPERATURE, batteryData);
                 break;
-            case _Cmd::CMD_READ_MOTOR:                
+            case Cmd::CMD_READ_MOTOR:                
                 publishMotorFeedback(data);
                 break;
             default:
@@ -434,7 +430,7 @@ namespace rs485_port_manager{
 
         if(checkNoEmptyVector(psu_data)){
             switch(cmd){
-                case _Cmd::CMD_VOLTAGE:
+                case Cmd::CMD_VOLTAGE:
                 {
                     std::vector<float> convertData[4];
                     for(size_t i=0; i<4; i++){    
@@ -459,11 +455,11 @@ namespace rs485_port_manager{
                     batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
                     batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
                     //publish voltages
-                    publishMotor(_Cmd::CMD_VOLTAGE, motorData);
-                    publishBattery(_Cmd::CMD_VOLTAGE, batteryData);
+                    publishMotor(Cmd::CMD_VOLTAGE, motorData);
+                    publishBattery(Cmd::CMD_VOLTAGE, batteryData);
                     break;
                 }
-                case _Cmd::CMD_CURRENT:
+                case Cmd::CMD_CURRENT:
                 {
                     std::vector<float> convertData[4];
                     for(size_t i=0; i<4; i++){    
@@ -489,11 +485,11 @@ namespace rs485_port_manager{
                     batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
                     batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
                     //publish currents
-                    publishMotor(_Cmd::CMD_CURRENT, motorData);
-                    publishBattery(_Cmd::CMD_CURRENT, batteryData);
+                    publishMotor(Cmd::CMD_CURRENT, motorData);
+                    publishBattery(Cmd::CMD_CURRENT, batteryData);
                     break;
                 }
-                case _Cmd::CMD_READ_MOTOR:
+                case Cmd::CMD_READ_MOTOR:
                 {
                     std::vector<uint8_t> motor_feedback;
                     motor_feedback.push_back(psu_data[0].at(0));

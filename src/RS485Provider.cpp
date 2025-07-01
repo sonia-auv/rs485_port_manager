@@ -45,13 +45,6 @@ namespace rs485_port_manager
         queueObject ser;
         ser.cmd = msg.cmd;
         ser.slave = msg.slave;
-        ser.data.clear();
-
-        std::vector<uint8_t> uint8Vector;
-        uint8Vector.resize(msg.data.size());
-        
-        std::transform(msg.data.begin(), msg.data.end(), uint8Vector.begin(),
-                   [](char c) { return static_cast<uint8_t>(c); });
         ser.data = msg.data;
         
         _writerQueue.push_back(ser);
@@ -177,17 +170,17 @@ namespace rs485_port_manager
                     // publisher.publish(msg);
                     switch (msgRS485.slave)
                     {
-                        case _SlaveId::SLAVE_KILLMISSION:
+                        case SlaveId::SLAVE_KILLMISSION:
                             _publisherKill->publish(msgRS485);
                             break;
-                        case _SlaveId::SLAVE_IO:
+                        case SlaveId::SLAVE_IO:
                             _publisherIO->publish(msgRS485);
                             break;
-                        case _SlaveId::SLAVE_PWR_MANAGEMENT:
-                        case _SlaveId::SLAVE_PSU0:
-                        case _SlaveId::SLAVE_PSU1:
-                        case _SlaveId::SLAVE_PSU2:
-                        case _SlaveId::SLAVE_PSU3:
+                        case SlaveId::SLAVE_PWR_MANAGEMENT:
+                        case SlaveId::SLAVE_PSU0:
+                        case SlaveId::SLAVE_PSU1:
+                        case SlaveId::SLAVE_PSU2:
+                        case SlaveId::SLAVE_PSU3:
                             _publisherMotor->publish(msgRS485);
                             break;
                         default:

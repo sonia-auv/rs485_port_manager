@@ -37,16 +37,23 @@ namespace rs485_port_manager{
 
         void publishMotorFeedback(std::vector<uint8_t> data);
 
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
-
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
+
         void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
+
         void PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
+
         void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
         bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
+
+        int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
+
+        void sendMessage(queueObject queue) override;
+
+        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
         
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryVoltages;
@@ -69,9 +76,5 @@ namespace rs485_port_manager{
             uint8_t bytes[4];
             float_t value;
         };
-
-        int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
-
-        void sendMessage(queueObject queue) override;
     };
 }

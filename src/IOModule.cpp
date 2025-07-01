@@ -23,12 +23,12 @@ namespace rs485_port_manager
     {
         // Variables for transmission status and data vector
         queueObject ser;
-        ser.slave=_SlaveId::SLAVE_IO;
+        ser.slave=SlaveId::SLAVE_IO;
         
         switch (request->element){
             case  sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_DROPPER:
             {
-                ser.cmd=_Cmd::CMD_IO_DROPPER_ACTION;
+                ser.cmd=Cmd::CMD_IO_DROPPER_ACTION;
                 ser.data.push_back(request->side);
 
                 sendMessage(ser);
@@ -37,7 +37,7 @@ namespace rs485_port_manager
             }
             case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_TORPEDO:
             {
-                ser.cmd=_Cmd::CMD_IO_TORPEDO_ACTION;
+                ser.cmd=Cmd::CMD_IO_TORPEDO_ACTION;
                 ser.data.push_back(request->side);
 
                 sendMessage(ser);
@@ -52,7 +52,7 @@ namespace rs485_port_manager
     }
     void IOModule::sendMessage(queueObject queue)
     {
-        auto to_return = sonia_common_ros2::msg::RS485msg();
+        sonia_common_ros2::msg::RS485msg to_return = sonia_common_ros2::msg::RS485msg();
         to_return.slave = queue.slave;
         to_return.cmd = queue.cmd;
         to_return.data = queue.data;

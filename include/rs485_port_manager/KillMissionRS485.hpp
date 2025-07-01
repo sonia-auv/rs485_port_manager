@@ -30,23 +30,18 @@ namespace rs485_port_manager
             ~KillMissionRS485();
 
         /**
-         * @brief Kill all internal threads.
+         * @brief method to send message to rs485
+         *
+         * @param queue the queueObject to send to RS485
          */
-        void Kill();
+        void sendMessage(queueObject queue) override;
 
         /**
-         * @brief
+         * @brief Method to read message from rs485
          *
-         * @param status
+         * @param msg the message from RS485
          */
-        void sendMessage(queueObject queue);
-
-        /**
-         * @brief
-         *
-         * @param msg
-         */
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
+        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
         private:
         /**
@@ -58,24 +53,18 @@ namespace rs485_port_manager
         void pollKillMission();
 
         /**
-         * @brief
+         * @brief function to publish on topic for status of kill switch
          *
          * @param status
          */
         void publishKill(bool status);
 
         /**
-         * @brief
+         * @brief function to publish on topic for status of mission switch
          *
          * @param status
          */
         void publishMission(bool status);
-
-        /**
-         * @brief
-         *
-         * @param status
-         */
 
         /* Used to publish the information of the Kill Switch */
         rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr  _subscriberKill;
