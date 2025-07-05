@@ -19,6 +19,8 @@ namespace rs485_port_manager
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillMissionRS485::pollKillMission, this));
     }
 
+    KillMissionRS485::~KillMissionRS485(){}
+
     void KillMissionRS485::sendMessage(queueObject queue)
     {
         sonia_common_ros2::msg::RS485msg to_return = sonia_common_ros2::msg::RS485msg();
