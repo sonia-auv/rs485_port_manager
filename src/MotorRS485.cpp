@@ -14,24 +14,25 @@ namespace rs485_port_manager{
             const char *auv = std::getenv("AUV");
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
             {
-                ESC_SLAVE = SlaveId::SLAVE_PWR_MANAGEMENT;
+                esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
                 RCLCPP_INFO(this->get_logger(), "Using AUV8 port");
             }
             else if(strcmp(auv, "AUV7")==0)
             {
-                ESC_SLAVE = SlaveId::SLAVE_ESC;
+                esc_slave = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
             }
             else 
             {
-                ESC_SLAVE = SlaveId::SLAVE_ESC;
+                esc_slave = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using default port AUV7");
             }
 
         }
         catch (...)
         {
-            ESC_SLAVE = SlaveId::SLAVE_ESC;
+            esc_slave = SlaveId::SLAVE_ESC;
+            RCLCPP_INFO(this->get_logger(), "Error, Using default port AUV7");
         }
 
         _publisherMotorVoltages =
@@ -188,12 +189,12 @@ namespace rs485_port_manager{
     {
         queueObject ser;
         ser.cmd = Cmd::CMD_ACT_MOTOR;
-        switch (ESC_SLAVE)
+        switch (esc_slave)
         {
             // AUV8 motor control
             case SlaveId::SLAVE_PWR_MANAGEMENT:
-                ser.slave = ESC_SLAVE;
-                ToggleMotors(msg.data, nb_thruster, ser.data);
+                ser.slave = esc_slave;
+                ToggleMotors(msg.data, NB_THRUSTER, ser.data);
 
                 sendMessage(ser);
                 break;
@@ -201,25 +202,25 @@ namespace rs485_port_manager{
             case SlaveId::SLAVE_ESC:
                 ser.slave = SlaveId::SLAVE_PSU0;
                 ser.data.clear();
-                ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
 
                 sendMessage(ser);
 
                 ser.slave = SlaveId::SLAVE_PSU1;
                 ser.data.clear();
-                ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
 
                 sendMessage(ser);
 
                 ser.slave = SlaveId::SLAVE_PSU2;
                 ser.data.clear();
-                ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
 
                 sendMessage(ser);
 
                 ser.slave = SlaveId::SLAVE_PSU3;
                 ser.data.clear();
-                ToggleMotors(msg.data, nb_thruster / 4, ser.data);
+                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
 
                 sendMessage(ser);
                 break;
@@ -250,7 +251,7 @@ namespace rs485_port_manager{
     {
         queueObject ser;
         ser.cmd = Cmd::CMD_PWM;
-        ser.slave = ESC_SLAVE;
+        ser.slave = esc_slave;
         ser.data.clear();
         
         ser.data.push_back(msg.motor1 >> 8);
@@ -361,9 +362,9 @@ namespace rs485_port_manager{
         {
             case Cmd::CMD_VOLTAGE:
 
-                if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
+                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
-                    std::cerr << "ERROR in the message. Dropping VOLTAGE packet" << std::endl;
+                    RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping VOLTAGE packet");
                     return;
                 }
 
@@ -378,9 +379,9 @@ namespace rs485_port_manager{
                 break;
             case Cmd::CMD_CURRENT:
 
-                if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
+                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
-                    std::cerr << "ERROR in the message. Dropping CURRENT packet" << std::endl;
+                    RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping CURRENT packet");
                     return;
                 }
 
@@ -394,9 +395,9 @@ namespace rs485_port_manager{
                 break;
             case Cmd::CMD_TEMPERATURE:
 
-                if (convertBytesToFloat(data, motorData, nb_thruster + nb_battery) < 0)
+                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
-                    std::cerr << "ERROR in the message. Dropping TEMPERATURE packet" << std::endl;
+                    RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping TEMPERATURE packet");
                     return;
                 }
 
@@ -421,7 +422,7 @@ namespace rs485_port_manager{
         std::vector<float> motorData;
         motorData.reserve(8);
         float batteryData[2];
-
+        
         if(checkNoEmptyVector(psu_data)){
             switch(cmd){
                 case Cmd::CMD_VOLTAGE:
@@ -431,7 +432,7 @@ namespace rs485_port_manager{
                         convertData[i].reserve(psu_data[i].size()/4);
                         if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
                         {
-                            std::cerr << "ERROR in the message. Dropping VOLTAGE packet" << std::endl;
+                            RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping VOLTAGE packet");
                             return;
                         }
                     }
@@ -460,10 +461,9 @@ namespace rs485_port_manager{
                         convertData[i].reserve(psu_data[i].size()/4);
                         if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
                         {
-                            std::cerr << "ERROR in the message. Dropping CURRENT packet" << std::endl;
+                            RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping CURRENT packet");
                             return;
                         }
-                        //std::cerr << "CONVERTDATA: "<<convertData[i].size() << std::endl;
                     }
                     //8 motor data
                     motorData.push_back(convertData[0].at(0));

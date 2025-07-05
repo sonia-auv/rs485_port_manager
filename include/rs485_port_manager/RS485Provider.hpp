@@ -90,9 +90,6 @@ namespace rs485_port_manager
 
         sonia_common_cpp::SerialConn _rs485Connection;
 
-       
-        rclcpp::TimerBase::SharedPtr _timerPowerRequest;
-
         std::thread _reader;
         std::thread _parser;
         std::thread _writer;

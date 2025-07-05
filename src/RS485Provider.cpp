@@ -13,8 +13,6 @@ namespace rs485_port_manager
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
-        // _timerPowerRequest= this->create_wall_timer(500ms, std::bind(&RS485Provider::pollPower, this));
-
         _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10, std::bind(&RS485Provider::messageRS485CallBack, this, _1), sub_opt);
 

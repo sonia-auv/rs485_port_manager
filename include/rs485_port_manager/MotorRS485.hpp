@@ -24,13 +24,6 @@ namespace rs485_port_manager{
 
         private:
 
-        std::vector<uint8_t> psu_volt_array[4];
-        std::vector<uint8_t> psu_curr_array[4];
-        std::vector<uint8_t> psu_feed_array[4];
-
-        const uint8_t nb_thruster = 8;
-        const uint8_t nb_battery = 2;
-
         void publishMotorInfo(uint8_t cmd, std::vector<float> data);
 
         void publishMotorFeedback(std::vector<uint8_t> data);
@@ -47,7 +40,15 @@ namespace rs485_port_manager{
 
         void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
-        bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]);
+        inline bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]){
+            for (const auto& v: array){
+                if(v.empty()){
+                    RCLCPP_ERROR(this->get_logger(),  "ERROR in the PSU messages. Dropping PSU messages");
+                    return false;
+                }
+            }
+            return true;
+        };
 
         int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
 
@@ -79,7 +80,16 @@ namespace rs485_port_manager{
         rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
 
-        uint8_t ESC_SLAVE;
+        uint8_t esc_slave;
+
+        std::vector<uint8_t> psu_volt_array[4];
+        std::vector<uint8_t> psu_curr_array[4];
+        std::vector<uint8_t> psu_feed_array[4];
+
+        const uint8_t NB_THRUSTER = 8;
+        //Two motor by bord
+        const uint8_t NB_THRUSTER_BY_PSU_AUV7 = NB_THRUSTER/4;
+        const uint8_t NB_BATTERY = 2;
 
         union _bytesToFloat
         {
