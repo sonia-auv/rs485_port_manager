@@ -31,7 +31,7 @@ namespace rs485_port_manager{
         const uint8_t nb_thruster = 8;
         const uint8_t nb_battery = 2;
 
-        void publishMotor(uint8_t cmd, std::vector<float> data);
+        void publishMotorInfo(uint8_t cmd, std::vector<float> data);
 
         void publishMotorFeedback(std::vector<uint8_t> data);
 

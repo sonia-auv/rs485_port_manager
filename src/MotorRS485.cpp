@@ -81,14 +81,8 @@ namespace rs485_port_manager{
         queueObject ser;
         ser.cmd = msg.cmd;
         ser.slave = msg.slave;
-        ser.data.clear();
 
-        std::vector<uint8_t> uint8Vector;
-        uint8Vector.resize(msg.data.size());
-        
-        std::transform(msg.data.begin(), msg.data.end(), uint8Vector.begin(),
-                   [](char c) { return static_cast<uint8_t>(c); });
-        ser.data = uint8Vector;
+        ser.data = msg.data;
         switch (ser.slave)
         {
             case SlaveId::SLAVE_PWR_MANAGEMENT:
@@ -286,7 +280,7 @@ namespace rs485_port_manager{
         sendMessage(ser);
     }
 
-    void MotorRS485::publishMotor(uint8_t cmd, std::vector<float> data)
+    void MotorRS485::publishMotorInfo(uint8_t cmd, std::vector<float> data)
     {
         sonia_common_ros2::msg::MotorPowerMessages msg;
         msg.motor1 = data[0];
@@ -378,7 +372,7 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(Cmd::CMD_VOLTAGE, motorData);
+                publishMotorInfo(Cmd::CMD_VOLTAGE, motorData);
                 publishBattery(Cmd::CMD_VOLTAGE, batteryData);
 
                 break;
@@ -395,7 +389,7 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(Cmd::CMD_CURRENT, motorData);
+                publishMotorInfo(Cmd::CMD_CURRENT, motorData);
                 publishBattery(Cmd::CMD_CURRENT, batteryData);
                 break;
             case Cmd::CMD_TEMPERATURE:
@@ -411,7 +405,7 @@ namespace rs485_port_manager{
                 motorData.pop_back();
                 motorData.pop_back();
 
-                publishMotor(Cmd::CMD_TEMPERATURE, motorData);
+                publishMotorInfo(Cmd::CMD_TEMPERATURE, motorData);
                 publishBattery(Cmd::CMD_TEMPERATURE, batteryData);
                 break;
             case Cmd::CMD_READ_MOTOR:                
@@ -455,7 +449,7 @@ namespace rs485_port_manager{
                     batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
                     batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
                     //publish voltages
-                    publishMotor(Cmd::CMD_VOLTAGE, motorData);
+                    publishMotorInfo(Cmd::CMD_VOLTAGE, motorData);
                     publishBattery(Cmd::CMD_VOLTAGE, batteryData);
                     break;
                 }
@@ -485,7 +479,7 @@ namespace rs485_port_manager{
                     batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
                     batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
                     //publish currents
-                    publishMotor(Cmd::CMD_CURRENT, motorData);
+                    publishMotorInfo(Cmd::CMD_CURRENT, motorData);
                     publishBattery(Cmd::CMD_CURRENT, batteryData);
                     break;
                 }
