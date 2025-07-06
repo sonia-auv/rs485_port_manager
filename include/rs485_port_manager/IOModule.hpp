@@ -33,6 +33,8 @@ namespace rs485_port_manager
         private:
         using _Grabber=sonia_common_ros2::action::Grabber;
         using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
+        using StaticPosSrv=sonia_common_ros2::srv::StaticPos;
+
 
 
 
@@ -59,6 +61,9 @@ namespace rs485_port_manager
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
+        //Service to move robot arm to specific static posittions (home)
+        void staticPos(const std::shared_ptr<StaticPosSrv::Request> request, std::shared_ptr<StaticPosSrv::Response> response);
+
 
         rclcpp_action::GoalResponse grabberGoalHandle(const rclcpp_action::GoalUUID & uuid,std::shared_ptr<const _Grabber::Goal> goal);
         rclcpp_action::CancelResponse grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
@@ -69,6 +74,7 @@ namespace rs485_port_manager
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         
+        rclcpp::Service<StaticPosSrv>::SharedPtr staticpos_srv;
         rclcpp_action::Server<_Grabber>::SharedPtr grabberAction_;
         
     };
