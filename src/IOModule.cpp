@@ -1,4 +1,5 @@
 #include "rs485_port_manager/IOModule.hpp"
+#include "IOModule.hpp"
 
 using namespace std::chrono_literals;
 
@@ -64,4 +65,20 @@ namespace rs485_port_manager
     {
 
     }
+
+    rclcpp_action::GoalResponse IOModule::grabberGoalHandle(const rclcpp_action::GoalUUID &uuid,
+                                                            std::shared_ptr<const _Grabber::Goal> goal)
+    {
+        return rclcpp_action::GoalResponse();
+    }
+
+    rclcpp_action::CancelResponse IOModule::grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle)
+    {
+        return rclcpp_action::CancelResponse();
+    }
+
+    void rs485_port_manager::IOModule::grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle) {}
+
+    void IOModule::grabberSendvalue(const float value) {}
 }
+

@@ -9,9 +9,15 @@
 #include <tuple>
 #include <vector>
 
+#include "rclcpp_action/rclcpp_action.hpp"
+
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "InterfaceModuleRS485.hpp"
+#include "sonia_common_ros2/msg/motors_values.hpp"
+#include "sonia_common_ros2/srv/static_pos.hpp"
+#include "sonia_common_ros2/action/grabber.hpp"
+
 
 namespace rs485_port_manager
 {
@@ -25,6 +31,10 @@ namespace rs485_port_manager
         
 
         private:
+        using _Grabber=sonia_common_ros2::action::Grabber;
+        using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
+
+
 
         /**
          * @brief Processes a actuator service request.
@@ -49,9 +59,18 @@ namespace rs485_port_manager
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
+
+        rclcpp_action::GoalResponse grabberGoalHandle(const rclcpp_action::GoalUUID & uuid,std::shared_ptr<const _Grabber::Goal> goal);
+        rclcpp_action::CancelResponse grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
+        void grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
+        void grabberSendvalue(const float value);
+
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
+        
+        rclcpp_action::Server<_Grabber>::SharedPtr grabberAction_;
+        
     };
 
 }  // namespace KillManager
