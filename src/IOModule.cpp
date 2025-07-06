@@ -65,9 +65,9 @@ namespace rs485_port_manager
 
     }
 
-    void IOModule::staticPos(const std::shared_ptr<StaticPosSrv::Request> request,
-                             std::shared_ptr<StaticPosSrv::Response> response)
-    {}
+    void IOModule::armMotorsCallback(const _MotorsMsg::SharedPtr msg) {}
+
+    void IOModule::armStaticPos(const std::shared_ptr<_StaticPosSrv::Request> request, std::shared_ptr<_StaticPosSrv::Response> response){}
 
     rclcpp_action::GoalResponse IOModule::grabberGoalHandle(const rclcpp_action::GoalUUID &uuid,
                                                             std::shared_ptr<const _Grabber::Goal> goal)
@@ -82,6 +82,6 @@ namespace rs485_port_manager
 
     void rs485_port_manager::IOModule::grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle) {}
 
-    void IOModule::grabberSendvalue(const float value) {}
+    void IOModule::grabberSendValue(const float value) {}
 }
 

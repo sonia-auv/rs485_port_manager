@@ -31,9 +31,11 @@ namespace rs485_port_manager
         
 
         private:
+        using _MotorsMsg = sonia_common_ros2::msg::MotorsValues;
+        using _StaticPosSrv=sonia_common_ros2::srv::StaticPos;
         using _Grabber=sonia_common_ros2::action::Grabber;
         using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
-        using StaticPosSrv=sonia_common_ros2::srv::StaticPos;
+
 
 
 
@@ -61,20 +63,26 @@ namespace rs485_port_manager
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
-        //Service to move robot arm to specific static posittions (home)
-        void staticPos(const std::shared_ptr<StaticPosSrv::Request> request, std::shared_ptr<StaticPosSrv::Response> response);
+        void armMotorsCallback(const _MotorsMsg::SharedPtr msg);
 
+        void armStaticPos(const std::shared_ptr<_StaticPosSrv::Request> request, std::shared_ptr<_StaticPosSrv::Response> response);
 
         rclcpp_action::GoalResponse grabberGoalHandle(const rclcpp_action::GoalUUID & uuid,std::shared_ptr<const _Grabber::Goal> goal);
         rclcpp_action::CancelResponse grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
         void grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
-        void grabberSendvalue(const float value);
+        void grabberSendValue(const float value);
 
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         
-        rclcpp::Service<StaticPosSrv>::SharedPtr staticpos_srv;
+        // Subscriber reading the three motor values
+        rclcpp::Subscription<_MotorsMsg>::SharedPtr motorSubscriber_;
+
+        // Service to move robot arm to specific static positions (home)
+        rclcpp::Service<_StaticPosSrv>::SharedPtr staticpos_srv;
+
+        // Action moving grabber
         rclcpp_action::Server<_Grabber>::SharedPtr grabberAction_;
         
     };
