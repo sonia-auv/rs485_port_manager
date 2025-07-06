@@ -345,13 +345,6 @@ namespace rs485_port_manager{
         _publisherMotorFeedback->publish(msg);
     }
 
-    bool MotorRS485::checkNoEmptyVector(std::vector<uint8_t> (&array)[4]){
-        for (const auto& v: array){
-            if(v.empty())return false;
-        }
-        return true;
-    }
-
     void MotorRS485::processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data)
     {
         std::vector<float> motorData;
