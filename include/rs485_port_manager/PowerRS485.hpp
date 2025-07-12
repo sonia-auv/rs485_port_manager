@@ -15,12 +15,12 @@
 
 namespace rs485_port_manager{
 
-    class MotorRS485 : InterfaceModuleRS485, public rclcpp::Node
+    class PowerRS485 : InterfaceModuleRS485, public rclcpp::Node
     {
         public:
 
-            MotorRS485();
-            ~MotorRS485();
+            PowerRS485();
+            ~PowerRS485();
 
         private:
 

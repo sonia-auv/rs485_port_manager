@@ -1,4 +1,4 @@
-#include "rs485_port_manager/IOModule.hpp"
+#include "rs485_port_manager/ActuatorRS485.hpp"
 
 using namespace std::chrono_literals;
 
@@ -7,17 +7,17 @@ using std::placeholders::_2;
 
 namespace rs485_port_manager
 {
-    IOModule::IOModule() // Node constructor
+    ActuatorRS485::ActuatorRS485() // Node constructor
     : Node("rs485_io_module")
     {
 
         _publishers485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/msgToSend", 10);
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
-            "/provider_actuator/do_action", std::bind(&IOModule::processActuatorRequest, this, _1, _2));
+            "/provider_actuator/do_action", std::bind(&ActuatorRS485::processActuatorRequest, this, _1, _2));
     }
-    IOModule::~IOModule() {}
+    ActuatorRS485::~ActuatorRS485() {}
 
-    void IOModule::processActuatorRequest(
+    void ActuatorRS485::processActuatorRequest(
     const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
     std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response)
     {
@@ -50,7 +50,7 @@ namespace rs485_port_manager
                 break;
         }         
     }
-    void IOModule::sendMessage(queueObject queue)
+    void ActuatorRS485::sendMessage(queueObject queue)
     {
         sonia_common_ros2::msg::RS485msg to_return = sonia_common_ros2::msg::RS485msg();
         to_return.slave = queue.slave;
@@ -60,7 +60,7 @@ namespace rs485_port_manager
         _publishers485->publish(to_return);
     }
 
-    void IOModule::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
+    void ActuatorRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
     {
 
     }

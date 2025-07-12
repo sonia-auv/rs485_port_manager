@@ -1,4 +1,4 @@
-#include "rs485_port_manager/MotorRS485.hpp"
+#include "rs485_port_manager/PowerRS485.hpp"
 
 using std::placeholders::_1;
 using std::placeholders::_2;
@@ -7,7 +7,7 @@ using namespace std::chrono_literals;
 namespace rs485_port_manager{
 
 
-    MotorRS485::MotorRS485() 
+    PowerRS485::PowerRS485() 
     : Node("motorRS485_provider"){
         try
         {
@@ -53,21 +53,21 @@ namespace rs485_port_manager{
         _publisherThrusterPwm =
             this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
         _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
-            "/provider_thruster/thruster_pwm", 10, std::bind(&MotorRS485::PwmCallback, this, _1));
+            "/provider_thruster/thruster_pwm", 10, std::bind(&PowerRS485::PwmCallback, this, _1));
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
-            "/provider_power/activate_motors", 10, std::bind(&MotorRS485::EnableDisableMotors, this, _1));
+            "/provider_power/activate_motors", 10, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
         
         _publisherRS485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>(
             "/rs485/msgToSend", 10);
 
         _subscriberMotor = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10
-                , std::bind(&MotorRS485::messageRS485CallBack, this, _1));
+                , std::bind(&PowerRS485::messageRS485CallBack, this, _1));
     }
 
     // node destructor
-    MotorRS485::~MotorRS485() {}
+    PowerRS485::~PowerRS485() {}
 
-    void MotorRS485::sendMessage(queueObject queue){
+    void PowerRS485::sendMessage(queueObject queue){
         sonia_common_ros2::msg::RS485msg msgRS485 = sonia_common_ros2::msg::RS485msg();
 
         msgRS485.cmd = queue.cmd;
@@ -77,7 +77,7 @@ namespace rs485_port_manager{
         _publisherRS485->publish(msgRS485);
     }
 
-    void MotorRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){
+    void PowerRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){
 
         queueObject ser;
         ser.cmd = msg.cmd;
@@ -185,7 +185,7 @@ namespace rs485_port_manager{
             }
 }
 
-    void MotorRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
+    void PowerRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
         queueObject ser;
         ser.cmd = Cmd::CMD_ACT_MOTOR;
@@ -229,7 +229,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void MotorRS485::ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data)
+    void PowerRS485::ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data)
     {
         if (state)
         {
@@ -247,7 +247,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void MotorRS485::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
+    void PowerRS485::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
     {
         queueObject ser;
         ser.cmd = Cmd::CMD_PWM;
@@ -281,7 +281,7 @@ namespace rs485_port_manager{
         sendMessage(ser);
     }
 
-    void MotorRS485::publishMotorInfo(uint8_t cmd, std::vector<float> data)
+    void PowerRS485::publishMotorInfo(uint8_t cmd, std::vector<float> data)
     {
         sonia_common_ros2::msg::MotorPowerMessages msg;
         msg.motor1 = data[0];
@@ -309,7 +309,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void MotorRS485::publishBattery(uint8_t cmd, float *data)
+    void PowerRS485::publishBattery(uint8_t cmd, float *data)
     {
         sonia_common_ros2::msg::BatteryPowerMessages msg;
         msg.battery1 = data[0];
@@ -331,7 +331,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void MotorRS485::publishMotorFeedback(std::vector<uint8_t> data)
+    void PowerRS485::publishMotorFeedback(std::vector<uint8_t> data)
     {
         sonia_common_ros2::msg::MotorFeedback msg;
         msg.motor1 = data[0];
@@ -345,7 +345,7 @@ namespace rs485_port_manager{
         _publisherMotorFeedback->publish(msg);
     }
 
-    void MotorRS485::processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data)
+    void PowerRS485::processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data)
     {
         std::vector<float> motorData;
         motorData.reserve(10);
@@ -411,7 +411,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void MotorRS485::processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]){
+    void PowerRS485::processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]){
         std::vector<float> motorData;
         motorData.reserve(8);
         float batteryData[2];
@@ -498,7 +498,7 @@ namespace rs485_port_manager{
         } 
     }
 
-    int MotorRS485::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
+    int PowerRS485::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
     {
         uint8_t size_req = req.size();
         if (size_req % 4 != 0) return -1;

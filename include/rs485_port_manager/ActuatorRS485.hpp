@@ -16,12 +16,12 @@
 namespace rs485_port_manager
 {
 
-    class IOModule : InterfaceModuleRS485, public rclcpp::Node
+    class ActuatorRS485 : InterfaceModuleRS485, public rclcpp::Node
     {
         
         public:
-            IOModule();
-            ~IOModule();
+            ActuatorRS485();
+            ~ActuatorRS485();
         
 
         private:
