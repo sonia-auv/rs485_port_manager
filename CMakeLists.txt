@@ -44,16 +44,56 @@ install(TARGETS
 
 ament_target_dependencies(${PROJECT_NAME} rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs rclcpp_action)
 
+# remove main.cpp which is the only .cpp with a main function
+list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
+
+# et on ajoute une librairie qui contient tous les fichiers src (soit tous les .cpp sans le main.cpp qui est le seul .cpp à avoir un main)
+add_library(
+  ${PROJECT_NAME}_lib SHARED
+  ${SOURCES}
+)
+
+target_include_directories(
+  ${PROJECT_NAME}_lib PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/${PROJECT_NAME}_lib>
+  $<INSTALL_INTERFACE:include>
+)
+
+install(
+  TARGETS ${PROJECT_NAME}_lib
+  ARCHIVE DESTINATION lib
+  LIBRARY DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+)
+
+ament_export_include_directories(include)
+ament_export_libraries(${PROJECT_NAME}_lib)
+ament_target_dependencies(${PROJECT_NAME}_lib rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs rclcpp_action)# linking the dependencies to executables
+
+
 if(BUILD_TESTING)
-  find_package(ament_lint_auto REQUIRED)
+  # find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
   # comment the line when a copyright and license is added to all source files
-  set(ament_cmake_copyright_FOUND TRUE)
+  # set(ament_cmake_copyright_FOUND TRUE)
   # the following line skips cpplint (only works in a git repo)
   # comment the line when this package is in a git repo and when
   # a copyright and license is added to all source files
-  set(ament_cmake_cpplint_FOUND TRUE)
-  ament_lint_auto_find_test_dependencies()
+  # set(ament_cmake_cpplint_FOUND TRUE)
+  # ament_lint_auto_find_test_dependencies()
+
+  find_package(ament_cmake_gtest REQUIRED)
+  ament_add_gtest(${PROJECT_NAME}_tutorial_test test/test_ArmControlLogic.cpp)
+  target_include_directories(${PROJECT_NAME}_tutorial_test PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+  )
+  ament_target_dependencies(${PROJECT_NAME}_tutorial_test
+    rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs rclcpp_action
+  )
+  target_link_libraries(${PROJECT_NAME}_tutorial_test ${PROJECT_NAME}_lib)# permet de relier la librairie qui est en fait le ArmProvider.cpp sans le main (pour NE PAS avoir multiples main, le main du fichier test et le main des fichiers src)
+
 endif()
 
 ament_package()

@@ -355,7 +355,7 @@ namespace rs485_port_manager{
         {
             case Cmd::CMD_VOLTAGE:
 
-                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
+                if (RS485Utils::convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
                     RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping VOLTAGE packet");
                     return;
@@ -372,7 +372,7 @@ namespace rs485_port_manager{
                 break;
             case Cmd::CMD_CURRENT:
 
-                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
+                if (RS485Utils::convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
                     RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping CURRENT packet");
                     return;
@@ -388,7 +388,7 @@ namespace rs485_port_manager{
                 break;
             case Cmd::CMD_TEMPERATURE:
 
-                if (convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
+                if (RS485Utils::convertBytesToFloat(data, motorData, NB_THRUSTER + NB_BATTERY) < 0)
                 {
                     RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping TEMPERATURE packet");
                     return;
@@ -423,7 +423,7 @@ namespace rs485_port_manager{
                     std::vector<float> convertData[4];
                     for(size_t i=0; i<4; i++){    
                         convertData[i].reserve(psu_data[i].size()/4);
-                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                        if (RS485Utils::convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
                         {
                             RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping VOLTAGE packet");
                             return;
@@ -452,7 +452,7 @@ namespace rs485_port_manager{
                     std::vector<float> convertData[4];
                     for(size_t i=0; i<4; i++){    
                         convertData[i].reserve(psu_data[i].size()/4);
-                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
+                        if (RS485Utils::convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
                         {
                             RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping CURRENT packet");
                             return;
@@ -498,21 +498,4 @@ namespace rs485_port_manager{
         } 
     }
 
-    int MotorRS485::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)
-    {
-        uint8_t size_req = req.size();
-        if (size_req % 4 != 0) return -1;
-
-        _bytesToFloat converter;
-
-        for (uint8_t i = 0; i < size; ++i)  // shifting of 4 for each data
-        {
-            converter.bytes[0] = req[4 * i];
-            converter.bytes[1] = req[4 * i + 1];
-            converter.bytes[2] = req[4 * i + 2];
-            converter.bytes[3] = req[4 * i + 3];
-            res.push_back(converter.value);
-        }
-        return 0;
-    }
 }

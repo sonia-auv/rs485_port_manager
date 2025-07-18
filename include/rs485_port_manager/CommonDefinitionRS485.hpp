@@ -65,4 +65,35 @@ namespace rs485_port_manager
         CMD_IO_LEAK_SENSOR = 4,
         CMD_KEEP_ALIVE = 30,
     };
+
+    union bytesToFloat
+    {
+        uint8_t bytes[4];
+        float value;
+    };
+
+    class RS485Utils {
+        public:
+        static int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size) // because it's a static function can be called without creating a RS485Utils object
+        {
+            uint8_t size_req = req.size();
+            if (size_req % 4 != 0) return -1;
+    
+            bytesToFloat converter;
+    
+            for (uint8_t i = 0; i < size; ++i)  // shifting of 4 for each data
+            {
+                converter.bytes[0] = req[4 * i];
+                converter.bytes[1] = req[4 * i + 1];
+                converter.bytes[2] = req[4 * i + 2];
+                converter.bytes[3] = req[4 * i + 3];
+                res.push_back(converter.value);
+            }
+            return 0;
+        };
+    };
+
+
+
+    
 }

@@ -12,6 +12,8 @@
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
 
 #include "InterfaceModuleRS485.hpp"
+#include "CommonDefinitionRS485.hpp"
+
 
 namespace rs485_port_manager{
 
@@ -49,8 +51,6 @@ namespace rs485_port_manager{
             }
             return true;
         };
-
-        int convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size);
 
         /**
          * @brief method to send message to rs485
@@ -91,10 +91,6 @@ namespace rs485_port_manager{
         const uint8_t NB_THRUSTER_BY_PSU_AUV7 = NB_THRUSTER/4;
         const uint8_t NB_BATTERY = 2;
 
-        union _bytesToFloat
-        {
-            uint8_t bytes[4];
-            float_t value;
-        };
+        
     };
 }
