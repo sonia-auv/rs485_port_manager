@@ -6,24 +6,22 @@
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
 
+#include "InterfaceModuleRS485.hpp"
 #include "sonia_common_ros2/msg/battery_power_messages.hpp"
 #include "sonia_common_ros2/msg/motor_feedback.hpp"
 #include "sonia_common_ros2/msg/motor_power_messages.hpp"
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
 
-#include "InterfaceModuleRS485.hpp"
-
-namespace rs485_port_manager{
+namespace rs485_port_manager
+{
 
     class PowerRS485 : InterfaceModuleRS485, public rclcpp::Node
     {
         public:
-
-            PowerRS485();
-            ~PowerRS485();
+        PowerRS485();
+        ~PowerRS485() = default;
 
         private:
-
         void publishMotorInfo(uint8_t cmd, std::vector<float> data);
 
         void publishMotorFeedback(std::vector<uint8_t> data);
@@ -40,10 +38,13 @@ namespace rs485_port_manager{
 
         void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
 
-        inline bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]){
-            for (const auto& v: array){
-                if(v.empty()){
-                    RCLCPP_ERROR(this->get_logger(),  "ERROR in the PSU messages. Dropping PSU messages");
+        inline bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4])
+        {
+            for (const auto &v : array)
+            {
+                if (v.empty())
+                {
+                    RCLCPP_ERROR(this->get_logger(), "ERROR in the PSU messages. Dropping PSU messages");
                     return false;
                 }
             }
@@ -65,7 +66,7 @@ namespace rs485_port_manager{
          * @param msg the message from RS485
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
-        
+
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorCurrents;
@@ -76,7 +77,7 @@ namespace rs485_port_manager{
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
-        
+
         rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
 
@@ -87,8 +88,8 @@ namespace rs485_port_manager{
         std::vector<uint8_t> psu_feed_array[4];
 
         const uint8_t NB_THRUSTER = 8;
-        //Two motor by bord
-        const uint8_t NB_THRUSTER_BY_PSU_AUV7 = NB_THRUSTER/4;
+        // Two motor by bord
+        const uint8_t NB_THRUSTER_BY_PSU_AUV7 = NB_THRUSTER / 4;
         const uint8_t NB_BATTERY = 2;
 
         union _bytesToFloat
@@ -97,4 +98,4 @@ namespace rs485_port_manager{
             float_t value;
         };
     };
-}
+}  // namespace rs485_port_manager

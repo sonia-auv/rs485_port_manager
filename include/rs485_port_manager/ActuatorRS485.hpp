@@ -3,29 +3,27 @@
 #include <stdio.h>
 
 #include <functional>
+#include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
-#include <rclcpp/rclcpp.hpp>
 #include <tuple>
 #include <vector>
 
-#include "sonia_common_ros2/srv/actuator_service.hpp"
-#include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "InterfaceModuleRS485.hpp"
+#include "sonia_common_ros2/msg/rs485msg.hpp"
+#include "sonia_common_ros2/srv/actuator_service.hpp"
 
 namespace rs485_port_manager
 {
 
     class ActuatorRS485 : InterfaceModuleRS485, public rclcpp::Node
     {
-        
         public:
-            ActuatorRS485();
-            ~ActuatorRS485();
-        
+        ActuatorRS485();
+        ~ActuatorRS485() = default;
+
 
         private:
-
         /**
          * @brief Processes a actuator service request.
          *
@@ -33,7 +31,7 @@ namespace rs485_port_manager
          * @param response if the message was correctly send by RS485
          */
         void processActuatorRequest(const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,
-                                   std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
+                                    std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Response> response);
 
         /**
          * @brief method to send message to rs485
@@ -54,4 +52,4 @@ namespace rs485_port_manager
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
     };
 
-}  // namespace KillManager
+}  // namespace rs485_port_manager

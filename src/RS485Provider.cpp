@@ -21,12 +21,8 @@ namespace rs485_port_manager
         _publisherMotor = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10);
     }
 
-    // node destructor
-    RS485Provider::~RS485Provider()
+    void RS485Provider::Start()
     {
-    }
-
-    void RS485Provider::Start() {
         _reader = std::thread(std::bind(&RS485Provider::readData, this));
         _writer = std::thread(std::bind(&RS485Provider::writeData, this));
         _parser = std::thread(std::bind(&RS485Provider::parseData, this));
@@ -56,7 +52,7 @@ namespace rs485_port_manager
     std::tuple<uint8_t, uint8_t> RS485Provider::checkSum(uint8_t slave, uint8_t cmd, uint8_t nbByte,
                                                          std::vector<uint8_t> data)
     {
-        uint16_t check = (uint16_t)(_START_BYTE + slave + cmd + nbByte + _END_BYTE);
+        uint16_t check = static_cast<uint16_t>(_START_BYTE + slave + cmd + nbByte + _END_BYTE);
         for (uint8_t i = 0; i < nbByte; i++)
         {
             check += (uint8_t)data[i];
@@ -121,7 +117,7 @@ namespace rs485_port_manager
             data[0] = _START_BYTE;
             data[1] = msg.slave;
             data[2] = msg.cmd;
-            data[3] = (uint8_t)msg.data.size();
+            data[3] = static_cast<uint8_t>(msg.data.size());
 
             std::vector<uint8_t> data_vec;
             for (int i = 0; i < data[3]; i++)

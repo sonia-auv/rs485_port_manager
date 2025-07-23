@@ -22,7 +22,7 @@ namespace rs485_port_manager
             {
                 printf("%x ", data[i]);
             }
-            
+
             printf("\n");
         }
     };
@@ -65,4 +65,4 @@ namespace rs485_port_manager
         CMD_IO_LEAK_SENSOR = 4,
         CMD_KEEP_ALIVE = 30,
     };
-}
+}  // namespace rs485_port_manager

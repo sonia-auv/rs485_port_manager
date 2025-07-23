@@ -3,7 +3,9 @@ Checks: '-*,
         clang-analyzer-*,
         google-*,
         llvm-*,-llvm-header-guard,
-        readability-*'
+        readability-*,
+        -readability-function-cognitive-complexity, -readability-make-member-function-const, -readability-convert-member-functions-to-static,
+        -clang-diagnostic-error'
 WarningsAsErrors: ''
 HeaderFilterRegex: ''
 AnalyzeTemporaryDtors: false

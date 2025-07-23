@@ -1,12 +1,12 @@
-#include "rs485_port_manager/RS485Provider.hpp"
-#include "rs485_port_manager/ActuatorRS485.hpp"
-#include "rs485_port_manager/KillMissionRS485.hpp"
-#include "rs485_port_manager/PowerRS485.hpp"
-
 #include <stdlib.h>
 
 #include <chrono>
 #include <iostream>
+
+#include "rs485_port_manager/ActuatorRS485.hpp"
+#include "rs485_port_manager/KillMissionRS485.hpp"
+#include "rs485_port_manager/PowerRS485.hpp"
+#include "rs485_port_manager/RS485Provider.hpp"
 
 int main(int argc, char *argv[])
 {
@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         rs485->Kill();
         RCLCPP_FATAL(rclcpp::get_logger("RS485"), "Could not open port...");
         rclcpp::shutdown();
-        
+
         return EXIT_FAILURE;
     }
 

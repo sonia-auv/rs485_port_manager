@@ -2,21 +2,20 @@
 
 #include <stdio.h>
 
+#include <condition_variable>
 #include <functional>
+#include <mutex>
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/bool.hpp>
 #include <std_srvs/srv/empty.hpp>
 #include <thread>
 #include <tuple>
-#include <mutex>
-#include <condition_variable>
 #include <vector>
 
-#include "sonia_common_cpp/SharedQueue.hpp"
-#include "sonia_common_cpp/SerialConn.hpp"
-#include "sonia_common_ros2/msg/rs485msg.hpp"
-
 #include "CommonDefinitionRS485.hpp"
+#include "sonia_common_cpp/SerialConn.hpp"
+#include "sonia_common_cpp/SharedQueue.hpp"
+#include "sonia_common_ros2/msg/rs485msg.hpp"
 
 
 namespace rs485_port_manager
@@ -26,7 +25,7 @@ namespace rs485_port_manager
     {
         public:
         RS485Provider();
-        ~RS485Provider();
+        ~RS485Provider() = default;
 
         /**
          * @brief Open designated internal serial port.
@@ -46,7 +45,6 @@ namespace rs485_port_manager
         void Start();
 
         private:
-
         /**
          * @brief Calculate Checksum.
          *
@@ -113,4 +111,4 @@ namespace rs485_port_manager
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherMotor;
     };
 
-}
+}  // namespace rs485_port_manager
