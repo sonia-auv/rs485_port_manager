@@ -33,6 +33,7 @@ int main(int argc, char *argv[])
     executor.add_node(ioRS485);
     executor.spin();
 
+    rclcpp::shutdown();
     rs485->Kill();
     return EXIT_SUCCESS;
 }

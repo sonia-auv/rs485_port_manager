@@ -1,0 +1,8 @@
+# .pre-commit-config.yaml
+repos:
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v17.0.6  # Use your installed clang-format version (run `clang-format --version`)
+    hooks:
+      - id: clang-format
+        args: [-i]
+        files: ^(include/|src/).*\.([ch]|cpp|hpp)$
