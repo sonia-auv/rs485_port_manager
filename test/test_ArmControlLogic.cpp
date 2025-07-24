@@ -25,7 +25,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   std::cout << "real_data1=" << real_data1 << std::endl;
   std::cout << "real_data2=" << real_data2 << std::endl;
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 500);
   ASSERT_EQ(real_data2, 1500);
   
@@ -39,7 +39,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 600);
   ASSERT_EQ(real_data2, 2500);
 
@@ -52,7 +52,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 600);
   ASSERT_EQ(real_data2, 500);
 
@@ -65,7 +65,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 2500);
   ASSERT_EQ(real_data2, 700);
 
@@ -78,7 +78,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 500);
   ASSERT_EQ(real_data2, 900);
 
@@ -91,7 +91,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 2500);
   ASSERT_EQ(real_data2, 500);
 
@@ -122,7 +122,7 @@ TEST(arm_port_manager, grabberProcessingTest)
 
   std::cout << "grabber_values[0]=" << grabber_values[0] << std::endl;
 
-  ASSERT_EQ(cmd, ArmControlLogic1.CMD_GRABBER);
+  ASSERT_EQ(cmd, rs485_port_manager::Cmd::CMD_GRABBER);
   ASSERT_EQ(grabber_values.at(0),value);
 
   // Test grabber max boundary 
@@ -136,7 +136,7 @@ TEST(arm_port_manager, grabberProcessingTest)
   std::cout << data1.size()<< std::endl;
   rs485_port_manager::RS485Utils::convertBytesToFloat(data1,grabber_values,1);
 
-  ASSERT_EQ(cmd, ArmControlLogic1.CMD_GRABBER);
+  ASSERT_EQ(cmd, rs485_port_manager::Cmd::CMD_GRABBER);
   ASSERT_EQ(grabber_values.at(1),100);
 
     // Test grabber max boundary 
@@ -150,7 +150,7 @@ TEST(arm_port_manager, grabberProcessingTest)
     std::cout << data1.size()<< std::endl;
     rs485_port_manager::RS485Utils::convertBytesToFloat(data1,grabber_values,1);
   
-    ASSERT_EQ(cmd, ArmControlLogic1.CMD_GRABBER);
+    ASSERT_EQ(cmd, rs485_port_manager::Cmd::CMD_GRABBER);
     ASSERT_EQ(grabber_values.at(2),10);
 
 }
@@ -180,7 +180,7 @@ TEST(arm_port_manager, staticposTest)
   std::cout << "real_data1=" << real_data1 << std::endl;
   std::cout << "real_data2=" << real_data2 << std::endl;
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 700);
   ASSERT_EQ(real_data2, 700);
   
@@ -193,7 +193,7 @@ TEST(arm_port_manager, staticposTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, 700);
   ASSERT_EQ(real_data2, 500);
 
@@ -206,7 +206,7 @@ TEST(arm_port_manager, staticposTest)
   real_data1=static_cast<unsigned>(data1[1]) << 8 | static_cast<unsigned>(data1[2]);
   real_data2=static_cast<unsigned>(data1[3]) << 8 | static_cast<unsigned>(data1[4]);
 
-  ASSERT_EQ(data1[0], ArmControlLogic1.CMD_MOTOR);
+  ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, motor1);
   ASSERT_EQ(real_data2, motor2);
 }

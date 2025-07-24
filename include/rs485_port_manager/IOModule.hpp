@@ -18,6 +18,10 @@
 #include "sonia_common_ros2/srv/static_pos.hpp"
 #include "sonia_common_ros2/action/grabber.hpp"
 
+using _MotorsValues = sonia_common_ros2::msg::MotorsValues;
+using _StaticPos=sonia_common_ros2::srv::StaticPos;
+using _Grabber=sonia_common_ros2::action::Grabber;
+using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
 
 namespace rs485_port_manager
 {
@@ -28,18 +32,11 @@ namespace rs485_port_manager
         public:
             IOModule();
             ~IOModule();
+           
         
 
         private:
-        using _MotorsMsg = sonia_common_ros2::msg::MotorsValues;
-        using _StaticPosSrv=sonia_common_ros2::srv::StaticPos;
-        using _Grabber=sonia_common_ros2::action::Grabber;
-        using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
-
-
-
-
-
+                
         /**
          * @brief Processes a actuator service request.
          *
@@ -63,12 +60,13 @@ namespace rs485_port_manager
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
-        void armMotorsCallback(const _MotorsMsg::SharedPtr msg);
+        void armMotorsCallback(const _MotorsValues::SharedPtr msg);
 
-        void armStaticPos(const std::shared_ptr<_StaticPosSrv::Request> request, std::shared_ptr<_StaticPosSrv::Response> response);
+        void armStaticPos(const std::shared_ptr<_StaticPos::Request> request, std::shared_ptr<_StaticPos::Response> response);
 
         rclcpp_action::GoalResponse grabberGoalHandle(const rclcpp_action::GoalUUID & uuid,std::shared_ptr<const _Grabber::Goal> goal);
         rclcpp_action::CancelResponse grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
+        void grabberAcceptedHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
         void grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
         void grabberSendValue(const float value);
 
@@ -77,13 +75,15 @@ namespace rs485_port_manager
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         
         // Subscriber reading the three motor values
-        rclcpp::Subscription<_MotorsMsg>::SharedPtr motorSubscriber_;
+        rclcpp::Subscription<_MotorsValues>::SharedPtr armMotorsSubscriber;
 
         // Service to move robot arm to specific static positions (home)
-        rclcpp::Service<_StaticPosSrv>::SharedPtr staticpos_srv;
+        rclcpp::Service<_StaticPos>::SharedPtr armStaticPosSrv;
 
         // Action moving grabber
-        rclcpp_action::Server<_Grabber>::SharedPtr grabberAction_;
+        rclcpp_action::Server<_Grabber>::SharedPtr armGrabberAction;
+        std::shared_ptr<_Grabber::Feedback> feedback;
+        std::shared_ptr<_Grabber::Result> result;
         
     };
 

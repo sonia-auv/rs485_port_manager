@@ -26,13 +26,6 @@ namespace rs485_port_manager
             std::vector<uint8_t> grabberProcessing(const float _value);
 
             
-        
-            uint8_t SLAVE_ARM=9;
-            uint8_t CMD_HOME=0;
-            uint8_t CMD_REPOS=1;
-            uint8_t CMD_MOTOR=2;
-            uint8_t CMD_GRABBER=3;
-            uint8_t CMD_OUT=255;
 
         private:
 
@@ -45,7 +38,7 @@ namespace rs485_port_manager
             
 
             // Boundaries for grabber values
-            float limite_min_grabber=10;
+            float limite_min_grabber=1;
             float limite_max_grabber=100;
             float error_min_grab =1;
         
