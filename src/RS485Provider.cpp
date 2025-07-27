@@ -7,23 +7,35 @@ using namespace std::chrono_literals;
 namespace rs485_port_manager
 {
 
+RS485Provider* RS485Provider::_instance= nullptr;;
+
     RS485Provider::RS485Provider()
         : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
+        ObservateurInterfaceModule = {};
         auto sub_opt = rclcpp::SubscriptionOptions();
         sub_opt.callback_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-
-        _subscriptionRS485 = this->create_subscription<sonia_common_ros2::msg::RS485msg>(
-            "/rs485/msgToSend", 10, std::bind(&RS485Provider::messageRS485CallBack, this, _1), sub_opt);
-
-        _publisherKill = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10);
-        _publisherIO = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/ioMessage", 10);
-        _publisherMotor = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10);
     }
 
     // node destructor
     RS485Provider::~RS485Provider()
     {
+    }
+
+    RS485Provider *RS485Provider::GetInstance(){
+        if ( _instance == nullptr){
+            _instance = new RS485Provider();
+        }
+        return _instance;
+    }
+
+
+    void RS485Provider::AddObservateur(rs485_port_manager::InterfaceModuleRS485* interfaceModule){
+        ObservateurInterfaceModule.push_back(interfaceModule);
+    }
+    void RS485Provider::AddMessage(queueObject msg){
+        _writerQueue.push_back(msg);
+        _cvReaderWriter.notify_all();
     }
 
     void RS485Provider::Start() {
@@ -159,7 +171,7 @@ namespace rs485_port_manager
             }
             else
             {
-                sonia_common_ros2::msg::RS485msg msgRS485 = sonia_common_ros2::msg::RS485msg();
+                queueObject msgRS485 = queueObject();
 
                 // pop the unused start data
                 _parseQueue.pop_front();
@@ -185,25 +197,8 @@ namespace rs485_port_manager
                 // if the checksum is bad, drop the packet
                 if (checkResult == calc_checksum)
                 {
-                    // publisher.publish(msg);
-                    switch (msgRS485.slave)
-                    {
-                        case SlaveId::SLAVE_KILLMISSION:
-                            _publisherKill->publish(msgRS485);
-                            break;
-                        case SlaveId::SLAVE_IO:
-                            _publisherIO->publish(msgRS485);
-                            break;
-                        case SlaveId::SLAVE_PWR_MANAGEMENT:
-                        case SlaveId::SLAVE_PSU0:
-                        case SlaveId::SLAVE_PSU1:
-                        case SlaveId::SLAVE_PSU2:
-                        case SlaveId::SLAVE_PSU3:
-                            _publisherMotor->publish(msgRS485);
-                            break;
-                        default:
-                            RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", msgRS485.slave);
-                            break;
+                    for(int i =0; i< ObservateurInterfaceModule.size();++i){
+                        ObservateurInterfaceModule[i]->messageRS485CallBack(msgRS485);
                     }
                 }
                 // packet dropped
