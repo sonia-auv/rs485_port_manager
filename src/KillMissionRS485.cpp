@@ -12,9 +12,12 @@ namespace rs485_port_manager
         rs485 = RS485Provider::GetInstance();
         rs485->AddObservateur(this);
 
-        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
+        rclcpp::QoS qos(10);
+        qos.reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
+
+        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", qos);
         _publisherMission =
-            this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
+            this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", qos);
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillMissionRS485::pollKillMission, this));
     }
 

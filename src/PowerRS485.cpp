@@ -38,27 +38,32 @@ namespace rs485_port_manager{
         rs485 = RS485Provider::GetInstance();
         rs485->AddObservateur(this);
 
-        _publisherMotorVoltages =
-            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_voltages", 10);
-        _publisherMotorCurrents =
-            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_currents", 10);
-        _publisherMotorTemperature = this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>(
-            "/provider_power/motor_temperatures", 10);
-        _publisherBatteryVoltages = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_voltages", 10);
-        _publisherBatteryCurrents = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_currents", 10);
-        _publisherBatteryTemperature = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_temperatures", 10);
-        _publisherMotorFeedback =
-            this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
+        rclcpp::QoS qosRelible(10);
+        qosRelible.reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
 
-        _publisherThrusterPwm =
-            this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
+
+        rclcpp::QoS qosBestEffort(10);
+        qosBestEffort.reliability(rclcpp::ReliabilityPolicy::BestEffort).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
+
+        _publisherMotorVoltages =
+            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_voltages", qosRelible);
+        _publisherMotorCurrents =
+            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_currents", qosRelible);
+        _publisherMotorTemperature = this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>(
+            "/provider_power/motor_temperatures", qosBestEffort);
+        _publisherBatteryVoltages = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
+            "/provider_power/battery_voltages", qosBestEffort);
+        _publisherBatteryCurrents = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
+            "/provider_power/battery_currents", qosBestEffort);
+        _publisherBatteryTemperature = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
+            "/provider_power/battery_temperatures", qosBestEffort);
+        _publisherMotorFeedback =
+            this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", qosRelible);
+        
         _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
-            "/provider_thruster/thruster_pwm", 10, std::bind(&PowerRS485::PwmCallback, this, _1));
+            "/provider_thruster/thruster_pwm", qosRelible, std::bind(&PowerRS485::PwmCallback, this, _1));
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
-            "/provider_power/activate_motors", 10, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
+            "/provider_power/activate_motors", qosRelible, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
     }
 
     // node destructor

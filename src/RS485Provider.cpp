@@ -13,8 +13,6 @@ RS485Provider* RS485Provider::_instance= nullptr;;
         : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         ObservateurInterfaceModule = {};
-        auto sub_opt = rclcpp::SubscriptionOptions();
-        sub_opt.callback_group = this->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
     }
 
     // node destructor
