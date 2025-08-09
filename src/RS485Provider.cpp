@@ -95,7 +95,7 @@ namespace rs485_port_manager
             {
                 for (ssize_t i = 0; i < str_len; i++)
                 {
-                    _parseQueue.push_back((uint8_t)tram.data[i]);
+                    _parseQueue.push_back((uint8_t)tram.data.at(i));
                 }
                 _cvReaderParser.notify_all();
             }
