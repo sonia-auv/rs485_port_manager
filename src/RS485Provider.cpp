@@ -84,16 +84,18 @@ namespace rs485_port_manager
         // Delay for port opening
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
-        uint8_t data[_DATA_READ_CHUNCK];
+        sonia_common_cpp::SerialTram tram;
+        tram.size = _DATA_READ_CHUNCK;
+        // uint8_t data[_DATA_READ_CHUNCK];
         while (_thread_control)
         {
-            ssize_t str_len = _rs485Connection.ReadPackets(_DATA_READ_CHUNCK, data);
+            ssize_t str_len = _rs485Connection.Read(tram);
 
             if (str_len != -1)
             {
                 for (ssize_t i = 0; i < str_len; i++)
                 {
-                    _parseQueue.push_back((uint8_t)data[i]);
+                    _parseQueue.push_back((uint8_t)tram.data[i]);
                 }
                 _cvReaderParser.notify_all();
             }
@@ -131,7 +133,10 @@ namespace rs485_port_manager
             data[data_size - 3] = std::get<0>(checksum);
             data[data_size - 2] = std::get<1>(checksum);
             data[data_size - 1] = _END_BYTE;
-            _rs485Connection.Transmit(data, data_size);
+            sonia_common_cpp::SerialTram tram;
+            tram.data = data;
+            tram.size = data_size;
+            _rs485Connection.Transmit(tram);
             delete data;
         }
     }
