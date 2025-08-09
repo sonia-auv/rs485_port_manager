@@ -134,7 +134,8 @@ namespace rs485_port_manager
             data[data_size - 2] = std::get<1>(checksum);
             data[data_size - 1] = _END_BYTE;
             sonia_common_cpp::SerialTram tram;
-            tram.data = data;
+            tram.data.assign(data, data + data_size);
+            // tram.data = data;
             tram.size = data_size;
             _rs485Connection.Transmit(tram);
             delete data;
