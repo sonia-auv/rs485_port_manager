@@ -16,12 +16,13 @@
 #include "InterfaceModuleRS485.hpp"
 #include "sonia_common_ros2/msg/motors_values.hpp"
 #include "sonia_common_ros2/srv/static_pos.hpp"
-#include "sonia_common_ros2/action/grabber.hpp"
+// #include "sonia_common_ros2/action/grabber.hpp"
+#include "sonia_common_ros2/srv/pince.hpp"
 
 using _MotorsValues = sonia_common_ros2::msg::MotorsValues;
 using _StaticPos=sonia_common_ros2::srv::StaticPos;
-using _Grabber=sonia_common_ros2::action::Grabber;
-using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
+// using _Grabber=sonia_common_ros2::srv::Pince;
+// using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
 
 namespace rs485_port_manager
 {
@@ -64,11 +65,8 @@ namespace rs485_port_manager
 
         void armStaticPos(const std::shared_ptr<_StaticPos::Request> request, std::shared_ptr<_StaticPos::Response> response);
 
-        rclcpp_action::GoalResponse grabberGoalHandle(const rclcpp_action::GoalUUID & uuid,std::shared_ptr<const _Grabber::Goal> goal);
-        rclcpp_action::CancelResponse grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
-        void grabberAcceptedHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
-        void grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle);
-        void grabberSendValue(const float value);
+        // void grabberSrv(const std::shared_ptr<_Grabber::Request> request, std::shared_ptr<_Grabber::Response> response);
+
 
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
@@ -80,10 +78,8 @@ namespace rs485_port_manager
         // Service to move robot arm to specific static positions (home)
         rclcpp::Service<_StaticPos>::SharedPtr armStaticPosSrv;
 
-        // Action moving grabber
-        rclcpp_action::Server<_Grabber>::SharedPtr armGrabberAction;
-        std::shared_ptr<_Grabber::Feedback> feedback;
-        std::shared_ptr<_Grabber::Result> result;
+        // Service moving grabber
+        // rclcpp::Service<_Grabber>::SharedPtr armGrabberSrv;
         
     };
 

@@ -20,13 +20,7 @@ namespace rs485_port_manager
 
         armStaticPosSrv = this->create_service<_StaticPos>("/provider_arm/staticpos", std::bind(&IOModule::armStaticPos, this, _1, _2));
 
-        armGrabberAction = rclcpp_action::create_server<_Grabber>(this,"/provider_arm/grabber", std::bind(&IOModule::grabberGoalHandle, this, _1, _2),
-        std::bind(&IOModule::grabberCancelHandle, this, _1),
-        std::bind(&IOModule::grabberAcceptedHandle, this, _1));
-        
-
-        feedback = std::make_shared<_Grabber::Feedback>();
-        result = std::make_shared<_Grabber::Result>();
+        // armGrabberSrv = this->create_service<_Grabber>("/provider_arm/grabber", std::bind(&IOModule::grabberSrv, this, _1, _2));
         }
     IOModule::~IOModule() {}
 
@@ -57,11 +51,24 @@ namespace rs485_port_manager
                 response->success = true;
                 break;
             }
+            case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_GRABBER:{
+                ser.slave = SlaveId::SLAVE_ARM;
+
+                ser.cmd = Cmd::CMD_GRABBER;
+                ser.data.push_back(request->action);
+                sendMessage(ser);
+                
+                response->success=true;
+                RCLCPP_INFO(this->get_logger(), "Move to %d position finished ? : yes",request->action);
+                break;
+            }
             default:
                 std::cerr << "ERROR in element. Unknown element" << std::endl;
                 response->success = false;
                 break;
-        }         
+        }      
+        RCLCPP_INFO(this->get_logger(), "Slave : %d",ser.slave);
+
     }
     void IOModule::sendMessage(queueObject queue)
     {
@@ -109,7 +116,7 @@ namespace rs485_port_manager
         RCLCPP_INFO(this->get_logger(), "Incoming request\nstatic position is : %d",request->static_pos_wanted);
         std::string static_pos;
         queueObject msg;
-        msg.slave = SLAVE_ARM;
+        msg.slave = SlaveId::SLAVE_ARM;
 
         switch (request->static_pos_wanted){
             case 0:
@@ -149,88 +156,17 @@ namespace rs485_port_manager
 
     }
 
-    rclcpp_action::GoalResponse IOModule::grabberGoalHandle(const rclcpp_action::GoalUUID &uuid,
-                                                            std::shared_ptr<const _Grabber::Goal> goal)
-    {
-        RCLCPP_INFO(this->get_logger(), "Received goal request with order %f", goal->goal_grabber);
-        (void)uuid;
-        return rclcpp_action::GoalResponse::ACCEPT_AND_EXECUTE;    
-    }
+    // void IOModule::grabberSrv(const std::shared_ptr<_Grabber::Request> request, std::shared_ptr<_Grabber::Response> response) {
+    //     queueObject msg;
+    //     msg.slave = SlaveId::SLAVE_ARM;
 
-    rclcpp_action::CancelResponse IOModule::grabberCancelHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle)
-    {
-        RCLCPP_INFO(this->get_logger(), "Received request to cancel goal");
-        (void)goal_handle;
-        return rclcpp_action::CancelResponse::ACCEPT;
-    }
-
-    void rs485_port_manager::IOModule::grabberAcceptedHandle(const std::shared_ptr<_GoalHandleGrabber> goal_handle) {
-        using namespace std::placeholders;
-        // this needs to return quickly to avoid blocking the executor, so spin up a new thread
-        std::thread{std::bind(&IOModule::grabberCallback, this, _1), goal_handle}.detach();
-    }
-
-
-    void rs485_port_manager::IOModule::grabberCallback(const std::shared_ptr<_GoalHandleGrabber> goal_handle) {
-        RCLCPP_INFO(this->get_logger(), "Executing goal");
-        rclcpp::Rate loop_rate(1);// ici faire gaffe au rate
-        rclcpp::Rate delay(1/5);// ici faire gaffe au rate
-        const auto goal = goal_handle->get_goal();
-        int cmp=0;
-
-        this->grabberSendValue(goal->goal_grabber);
-
-        while (cmp<5 && rclcpp::ok()) { //while ((this->feedback->current_width < goal->goal_grabber-error_min_grab && this->feedback->current_width < goal->goal_grabber+error_min_grab)  && rclcpp::ok()) {
-            // Check if there is a cancel request
-            if (goal_handle->is_canceling()) {
-                this->result->final_width = this->feedback->current_width;
-                this->result->success=false;
-                goal_handle->canceled(this->result);
-                RCLCPP_INFO(this->get_logger(), "Goal canceled");
-                return;
-            }
-            // Update sequence
-            // Publish feedback
-            
-            cmp++;
-            this->feedback->current_width=this->feedback->current_width+0.1; //ce cmp est juste là pour faire un délai de 5 tour de boucle (qui correspond à 5 secondes si loop_rate =1) pour reproduire l'attente du retour de la pince disant qu'elle a fini d'atteindre la position voulue
-            //////////////////////////// IL FAUDRA DONC CHANGER CELA ET LA CONDITION DE LA BOUCLE WHILE QUAND ON POURRA OBTENIR LE RETOUR DE LA PINCE /////////////////////////////////////////////////////////////
-            
-            goal_handle->publish_feedback(this->feedback);
-            RCLCPP_INFO(this->get_logger(), "Publish feedback");  
-            ////////////////////////////////////////////// this->getGrabberCurrentWidth();          
-            loop_rate.sleep();
-        }
-        // Check if goal is done
-        if (rclcpp::ok()) {
-            this->result->final_width = this->feedback->current_width;
-            this->result->success=true;
-            goal_handle->succeed(this->result);
-            RCLCPP_INFO(this->get_logger(), "Goal succeeded");
-        }
-    }
-
-    void IOModule::grabberSendValue(const float value) {
-        queueObject msg;
-        msg.slave = SlaveId::SLAVE_ARM;
-
-        std::vector<uint8_t> data;
-        rs485_port_manager::ArmControlLogic armControlLogic=rs485_port_manager::ArmControlLogic();
-        data=armControlLogic.grabberProcessing(value);
-        msg.cmd = data[0];
-        data.erase(data.begin());
-        size_t data_size=data.size();
-
-        for (size_t i = 0; i < data_size; i++){
-            msg.data.push_back(data[i]);
-        }
-        this->sendMessage(msg);
+    //     msg.cmd = Cmd::CMD_GRABBER;
+    //     msg.data.push_back(request->grabber_state);
+    //     this->sendMessage(msg);
         
-        std::vector<float> grabber_values;
-        rs485_port_manager::RS485Utils::convertBytesToFloat(msg.data,grabber_values,1);
-        std::cout << "grabber_values[0]=" << grabber_values[0] << std::endl;
-        std::cout << "Send message motors" << std::endl;
+    //     response->success=true;
+    //     RCLCPP_INFO(this->get_logger(), "Move to %d position finished ? : yes",request->grabber_state);
 
-    }
+    // }
 }
 
