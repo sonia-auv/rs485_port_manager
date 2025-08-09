@@ -47,7 +47,7 @@ ament_target_dependencies(${PROJECT_NAME} rclcpp sonia_common_cpp sonia_common_r
 # remove main.cpp which is the only .cpp with a main function
 list(REMOVE_ITEM SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp)
 
-# et on ajoute une librairie qui contient tous les fichiers src (soit tous les .cpp sans le main.cpp qui est le seul .cpp à avoir un main)
+# add a library including all src files without the main.cpp file (removed just before), to avoid multiple main function conflict (with the main in the test.cpp)
 add_library(
   ${PROJECT_NAME}_lib SHARED
   ${SOURCES}
@@ -92,7 +92,7 @@ if(BUILD_TESTING)
   ament_target_dependencies(${PROJECT_NAME}_tutorial_test
     rclcpp sonia_common_cpp sonia_common_ros2 std_msgs std_srvs rclcpp_action
   )
-  target_link_libraries(${PROJECT_NAME}_tutorial_test ${PROJECT_NAME}_lib)# permet de relier la librairie qui est en fait le ArmProvider.cpp sans le main (pour NE PAS avoir multiples main, le main du fichier test et le main des fichiers src)
+  target_link_libraries(${PROJECT_NAME}_tutorial_test ${PROJECT_NAME}_lib)
 
 endif()
 

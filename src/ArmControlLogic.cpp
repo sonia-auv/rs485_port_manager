@@ -1,7 +1,7 @@
 #include "rs485_port_manager/ArmControlLogic.hpp"
 
 
-// using namespace std::chrono_literals;
+// Class computing basic functions processing motors values, static position and grabber for robotic arm
 
 
 namespace rs485_port_manager
@@ -10,16 +10,27 @@ namespace rs485_port_manager
     ArmControlLogic::ArmControlLogic(){}
     ArmControlLogic::~ArmControlLogic(){}
 
+    // Basic function used to create a uint8_t vector, including both motors values and cmd which is reused to set up the queue object sent in IO Module
     std::vector<uint8_t> ArmControlLogic::motorsProcessing(const uint16_t _motor1, const uint16_t _motor2)
     {
         std::vector<uint8_t> data_motors;
         uint16_t value_motor1;
         uint16_t value_motor2;
 
-        value_motor1=std::clamp(_motor1,limite_min_motor1,limite_max_motor1);
-        value_motor2=std::clamp(_motor2,limite_min_motor2,limite_max_motor2);
 
-        if ((value_motor1==limite_max_motor1 or value_motor1==limite_min_motor1) or (value_motor2==limite_max_motor2 or value_motor2==limite_min_motor2))
+        //////////////////////////////////// DOESN'T WORK BECAUSE MOTOR1 BOUNDARIES DEPEND OF MOTOR2 BOUNDARIES
+        ////////////////////////////////// IF MOTOR1 =90 DEGREES THEN MOTOR2 DOESN'T HAVE ANY BOUNDARY
+        ////////////////////////////////// IF MOTOR1 = 0 DEGREES THEN MOTOR2 HAVE TO BE BETWEEN 180 AND 360
+        //////////////////////////// MORE INTRERESTING TO DO THE BOUNDARY TEST IN ARMCALCULATOR.CPP
+        
+        // Assign _motorX value, if inside the boundaries, to value_motorX, the boundary exceeded value otherwise
+        value_motor1=std::clamp(_motor1,min_boundary_motor1,max_boundary_motor1);
+        value_motor2=std::clamp(_motor2,min_boundary_motor2,max_boundary_motor2);
+
+
+
+        // Necessary if we decide to send CMD_OUT insted of CMD_MOTOR when values are outside the boundaries 
+        if ((value_motor1==max_boundary_motor1 or value_motor1==min_boundary_motor1) or (value_motor2==max_boundary_motor2 or value_motor2==min_boundary_motor2))
             data_motors.push_back(Cmd::CMD_MOTOR);
         else
             data_motors.push_back(Cmd::CMD_MOTOR);
@@ -33,6 +44,7 @@ namespace rs485_port_manager
     }
 
 
+    // Basic function used to create a uint8_t vector, including both motors values and cmd(according to _static_pos_wanted) which is reused to set up the queue object sent in IO Module
     std::vector<uint8_t> ArmControlLogic::staticPosProcessing(const uint8_t _static_pos_wanted, const uint16_t current_motor1, const uint16_t current_motor2)
     {
         std::vector<uint8_t> data_static_pos;
@@ -59,13 +71,13 @@ namespace rs485_port_manager
         return data_static_pos;
     }
 
-
+    // Basic function used to create a uint8_t vector, including grabber value and cmd which is reused to set up the queue object sent in IO Module
     std::vector<uint8_t> ArmControlLogic::grabberProcessing(const float _value)
     {
         std::vector<uint8_t> data_grabber;
         rs485_port_manager::bytesToFloat converter;
         data_grabber.push_back(Cmd::CMD_GRABBER);
-        converter.value=std::clamp(_value,limite_min_grabber,limite_max_grabber);
+        converter.value=std::clamp(_value,min_boundary_grabber,max_boundary_grabber);
 
 
         data_grabber.push_back(converter.bytes[0]);

@@ -30,17 +30,16 @@ namespace rs485_port_manager
         private:
 
 
-            // Boundaries for motors values
-            uint16_t limite_min_motor1=500;
-            uint16_t limite_max_motor1=2500;
-            uint16_t limite_min_motor2=500;
-            uint16_t limite_max_motor2=2500;
+            // Boundaries for motors values to avoid hitting the sub
+            uint16_t min_boundary_motor1=500;//////////////////////////////////////////////à modifier si nécessaire
+            uint16_t max_boundary_motor1=2500;//////////////////////////////////////////////à modifier si nécessaire
+            uint16_t min_boundary_motor2=500;//////////////////////////////////////////////à modifier si nécessaire
+            uint16_t max_boundary_motor2=2500;//////////////////////////////////////////////à modifier si nécessaire
             
 
             // Boundaries for grabber values
-            float limite_min_grabber=1;
-            float limite_max_grabber=100;
-            float error_min_grab =1;
+            float min_boundary_grabber=1;//////////////////////////////////////////////à modifier si nécessaire
+            float max_boundary_grabber=100;//////////////////////////////////////////////à modifier si nécessaire
         
     };
 

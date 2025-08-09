@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "rs485_port_manager/ArmControlLogic.hpp"
+#include "rs485_port_manager/ArmCalculator.hpp"
 
 TEST(rs485_port_manager, motorsProcessingTest)
 {
@@ -98,7 +99,7 @@ TEST(rs485_port_manager, motorsProcessingTest)
 }
 
 
-TEST(arm_port_manager, grabberProcessingTest)
+TEST(rs485_port_manager, grabberProcessingTest)
 {
 
 
@@ -151,11 +152,11 @@ TEST(arm_port_manager, grabberProcessingTest)
     rs485_port_manager::RS485Utils::convertBytesToFloat(data1,grabber_values,1);
   
     ASSERT_EQ(cmd, rs485_port_manager::Cmd::CMD_GRABBER);
-    ASSERT_EQ(grabber_values.at(2),10);
+    ASSERT_EQ(grabber_values.at(2),value);
 
 }
 
-TEST(arm_port_manager, staticposTest)
+TEST(rs485_port_manager, staticposTest)
 {
 
   std::cout << "Début du test" << std::endl;
@@ -209,6 +210,135 @@ TEST(arm_port_manager, staticposTest)
   ASSERT_EQ(data1[0], rs485_port_manager::Cmd::CMD_MOTOR);
   ASSERT_EQ(real_data1, motor1);
   ASSERT_EQ(real_data2, motor2);
+}
+
+TEST(rs485_port_manager,directGeometricModelTest){
+  std::cout << "Début du test" << std::endl;
+  rs485_port_manager::ArmCalculator armcalculator=rs485_port_manager::ArmCalculator();
+
+  // Test motor1 and 2 in boundaries
+  uint16_t motor1= 500;
+  uint16_t motor2= 500;
+
+
+  std::vector<float> data_direct;
+  data_direct=armcalculator.directGeometricModel(motor1,motor2);
+
+  std::cout << "data size=" <<data_direct.size()<< std::endl;
+
+  std::cout << "data_direct[0]=" << data_direct[0] << std::endl;
+  std::cout << "data_direct[1]=" << data_direct[1] << std::endl;
+
+  float ratio_m1=motor1/armcalculator.complete_rev_motor1*2*M_PI;
+  float ratio_m2 =motor2/armcalculator.complete_rev_motor2*2*M_PI;
+
+  std::vector<float> data_inv;
+  bool elbow_up=true;
+  data_inv=armcalculator.inverseGeometricModel(data_direct[0],data_direct[1],elbow_up);
+
+  std::cout << "data_inv[0]=" << data_inv[0] << std::endl;
+  std::cout << "data_inv[1]=" << data_inv[1] << std::endl;
+
+  ASSERT_EQ(data_direct[0],armcalculator.l2*cos(ratio_m1+ratio_m2)+armcalculator.l1*cos(ratio_m1));
+  ASSERT_EQ(data_direct[1],armcalculator.l2*sin(ratio_m1+ratio_m2)+armcalculator.l1*sin(ratio_m1));
+
+
+
+  // Test motor2 outside of boundaries
+  std::cout << "Test motor2 outside of boundaries\n" <<data_direct.size()<< std::endl;
+
+  motor1= 0;
+  motor2= 2000;
+
+
+  data_direct=armcalculator.directGeometricModel(motor1,motor2);
+
+  std::cout << "data size=" <<data_direct.size()<< std::endl;
+  std::cout << "data size=" <<data_direct.size()<< std::endl;
+
+  // data_inv=armcalculator.inverseGeometricModel(data_direct[0],data_direct[1],elbow_up);
+
+  // std::cout << "data_inv[0]=" << data_inv[0] << std::endl;
+  // std::cout << "data_inv[1]=" << data_inv[1] << std::endl;  
+
+  ASSERT_EQ(data_direct.size(),0);
+
+  std::cout << "Test motor1 outside of boundaries\n" <<data_direct.size()<< std::endl;
+
+  // Test motor1 outside of boundaries
+  motor1= 1300;
+  motor2= 1625;
+
+
+  data_direct=armcalculator.directGeometricModel(motor1,motor2);
+
+  std::cout << "data size=" <<data_direct.size()<< std::endl;
+
+  // data_inv=armcalculator.inverseGeometricModel(data_direct[0],data_direct[1],!elbow_up);
+
+  // std::cout << "data_inv[0]=" << data_inv[0] << std::endl;
+  // std::cout << "data_inv[1]=" << data_inv[1] << std::endl;
+
+  ASSERT_EQ(data_direct.size(),0);
+}
+
+TEST(rs485_port_manager,inverseGeometricModelTest){
+  std::cout << "Début du test" << std::endl;
+  rs485_port_manager::ArmCalculator armcalculator=rs485_port_manager::ArmCalculator();
+
+  // Effector position in boundaries
+  float x= 0.424;
+  float y= 0;
+  bool elbow_up=true;
+
+
+  std::vector<float> data_inv;
+  data_inv=armcalculator.inverseGeometricModel(x,y,elbow_up);
+
+  std::cout << "data size=" <<data_inv.size()<< std::endl;
+
+  std::cout << "data_inv[0]=" << data_inv[0] << std::endl;
+  std::cout << "data_inv[1]=" << data_inv[1] << std::endl;
+  ASSERT_EQ(data_inv[0],0);
+  ASSERT_EQ(data_inv[1],0);
+
+  uint16_t motor1=data_inv[0]*2500/(2*M_PI);
+  uint16_t motor2=data_inv[1]*2500/(2*M_PI);
+  std::vector<float> data_direct;
+
+  data_direct=armcalculator.directGeometricModel(motor1,motor2);
+  std::cout << "data_direct1[0]=" << data_direct[0] << std::endl;
+  std::cout << "data_direct1[1]=" << data_direct[1] << std::endl;
+
+  // Effector position in boundaries
+  float line_effector_origin=sqrt(armcalculator.l1*armcalculator.l1+armcalculator.l2*armcalculator.l2);
+  x=line_effector_origin*cos(acos(armcalculator.l1/line_effector_origin)+M_PI/4);
+  y=line_effector_origin*sin(acos(armcalculator.l1/line_effector_origin)+M_PI/4);
+
+  float X=acos(x/line_effector_origin)-acos(armcalculator.l1/line_effector_origin);
+  std::cout << "x2=" << x << std::endl;
+  std::cout << "y2=" << y << std::endl;
+  std::cout << "X=" << X << std::endl;
+
+  elbow_up=true;
+
+  data_inv=armcalculator.inverseGeometricModel(x,y,elbow_up);
+
+  std::cout << "data size=" <<data_inv.size()<< std::endl;
+
+  std::cout << "data_inv[0]=" << data_inv[0] << std::endl;
+  std::cout << "data_inv[1]=" << data_inv[1] << std::endl;
+
+  motor1=data_inv[0]*2500/(2*M_PI);
+  motor2=data_inv[1]*2500/(2*M_PI);
+  data_direct=armcalculator.directGeometricModel(motor1,motor2);
+  std::cout << "data_direct[0]=" << data_direct[0] << std::endl;
+  std::cout << "data_direct[1]=" << data_direct[1] << std::endl;
+
+  ASSERT_EQ(data_inv[0],M_PI/4);
+  ASSERT_EQ(data_inv[1],M_PI/2);
+
+
 }
 
 int main(int argc, char ** argv)

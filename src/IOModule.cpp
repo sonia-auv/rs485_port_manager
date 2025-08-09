@@ -192,11 +192,13 @@ namespace rs485_port_manager
             // Update sequence
             // Publish feedback
             
-            cmp++; //ce cmp est juste là pour faire un délai de 5 tour de boucle (qui correspond à 5 secondes si loop_rate =1) pour reproduire l'attente du retour de la pince disant qu'elle a fini d'atteindre la position voulue
+            cmp++;
+            this->feedback->current_width=this->feedback->current_width+0.1; //ce cmp est juste là pour faire un délai de 5 tour de boucle (qui correspond à 5 secondes si loop_rate =1) pour reproduire l'attente du retour de la pince disant qu'elle a fini d'atteindre la position voulue
             //////////////////////////// IL FAUDRA DONC CHANGER CELA ET LA CONDITION DE LA BOUCLE WHILE QUAND ON POURRA OBTENIR LE RETOUR DE LA PINCE /////////////////////////////////////////////////////////////
-
+            
             goal_handle->publish_feedback(this->feedback);
-            RCLCPP_INFO(this->get_logger(), "Publish feedback");            
+            RCLCPP_INFO(this->get_logger(), "Publish feedback");  
+            ////////////////////////////////////////////// this->getGrabberCurrentWidth();          
             loop_rate.sleep();
         }
         // Check if goal is done
