@@ -146,9 +146,6 @@ namespace rs485_port_manager{
                 }//end switch case  
                 break;
             }
-            default:
-                RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", queue.slave);
-                break;
         }
         
         if(queue.slave==SlaveId::SLAVE_PSU0 || queue.slave==SlaveId::SLAVE_PSU1 || queue.slave==SlaveId::SLAVE_PSU2 || queue.slave==SlaveId::SLAVE_PSU3 ){
