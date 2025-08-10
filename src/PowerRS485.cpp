@@ -15,14 +15,16 @@ namespace rs485_port_manager{
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
             {
                 esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-                RCLCPP_INFO(this->get_logger(), "Using " + auv + " port");
+                char[100] using_message;
+                sprintf(using_message, "Using %s port", auv);
+                RCLCPP_INFO(this->get_logger(), using_message);
             }
             else if(strcmp(auv, "AUV7")==0)
             {
                 esc_slave = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
             }
-            else 
+            else
             {
                 esc_slave = SlaveId::SLAVE_ESC;
                 RCLCPP_INFO(this->get_logger(), "Using default port AUV7");
