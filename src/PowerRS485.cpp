@@ -12,7 +12,7 @@ namespace rs485_port_manager{
         try
         {
             const char *auv = std::getenv("AUV");
-            if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0)
+            if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
             {
                 esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
                 RCLCPP_INFO(this->get_logger(), "Using AUV8 port");
