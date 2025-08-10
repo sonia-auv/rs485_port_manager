@@ -52,18 +52,20 @@ namespace rs485_port_manager
     void KillMissionRS485::messageRS485CallBack(queueObject queue)
     {
         
-        switch (queue.cmd)
-        {
-            case Cmd::CMD_KILL:
-                // get data value
-                // publish on kill publisher
-                publishKill(queue.data[0] == 1);
-                break;
-            case Cmd::CMD_MISSION:
-                // get data value
-                // publish on mission publisher
-                publishMission(queue.data[0] == 1);
-                break;
+        if(SlaveId::SLAVE_KILLMISSION){
+            switch (queue.cmd)
+            {
+                case Cmd::CMD_KILL:
+                    // get data value
+                    // publish on kill publisher
+                    publishKill(queue.data[0] == 1);
+                    break;
+                case Cmd::CMD_MISSION:
+                    // get data value
+                    // publish on mission publisher
+                    publishMission(queue.data[0] == 1);
+                    break;
+            }
         }
 
     }
