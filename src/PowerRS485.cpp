@@ -15,9 +15,7 @@ namespace rs485_port_manager{
             if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
             {
                 esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-                char[100] using_message;
-                sprintf(using_message, "Using %s port", auv);
-                RCLCPP_INFO(this->get_logger(), using_message);
+                RCLCPP_INFO(this->get_logger(), "Using %s port", auv);
             }
             else if(strcmp(auv, "AUV7")==0)
             {
