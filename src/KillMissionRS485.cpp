@@ -52,7 +52,7 @@ namespace rs485_port_manager
     void KillMissionRS485::messageRS485CallBack(queueObject queue)
     {
         
-        if(SlaveId::SLAVE_KILLMISSION){
+        if(queue.slave == SlaveId::SLAVE_KILLMISSION){
             switch (queue.cmd)
             {
                 case Cmd::CMD_KILL:
