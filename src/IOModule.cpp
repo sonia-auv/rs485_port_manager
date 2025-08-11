@@ -20,7 +20,6 @@ namespace rs485_port_manager
 
         armStaticPosSrv = this->create_service<_StaticPos>("/provider_arm/staticpos", std::bind(&IOModule::armStaticPos, this, _1, _2));
 
-        // armGrabberSrv = this->create_service<_Grabber>("/provider_arm/grabber", std::bind(&IOModule::grabberSrv, this, _1, _2));
         }
     IOModule::~IOModule() {}
 
@@ -52,9 +51,8 @@ namespace rs485_port_manager
                 break;
             }
             case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_GRABBER:{
-                ser.slave = SlaveId::SLAVE_ARM;
 
-                ser.cmd = Cmd::CMD_GRABBER;
+                ser.cmd = Cmd::CMD_IO_ARM_GRABBER;
                 ser.data.push_back(request->action);
                 sendMessage(ser);
                 
@@ -92,7 +90,7 @@ namespace rs485_port_manager
 
         rs485_port_manager::ArmControlLogic armControlLogic=rs485_port_manager::ArmControlLogic();
         data=armControlLogic.motorsProcessing(msg->motor1 ,msg->motor2);
-        msgData.slave = SlaveId::SLAVE_ARM;
+        msgData.slave = SlaveId::SLAVE_IO;
         msgData.cmd = data[0];
         data.erase(data.begin());
         size_t data_size=data.size();
@@ -116,7 +114,7 @@ namespace rs485_port_manager
         RCLCPP_INFO(this->get_logger(), "Incoming request\nstatic position is : %d",request->static_pos_wanted);
         std::string static_pos;
         queueObject msg;
-        msg.slave = SlaveId::SLAVE_ARM;
+        msg.slave = SlaveId::SLAVE_IO;
 
         switch (request->static_pos_wanted){
             case 0:
@@ -134,7 +132,7 @@ namespace rs485_port_manager
 
         rs485_port_manager::ArmControlLogic armControlLogic=rs485_port_manager::ArmControlLogic();
         data=armControlLogic.staticPosProcessing(request->static_pos_wanted,1000 ,1000); //define a function to get back the current values of motor1 and motor2
-        msg.slave = SlaveId::SLAVE_ARM;
+        msg.slave = SlaveId::SLAVE_IO;
         msg.cmd = data[0];
         data.erase(data.begin());
         size_t data_size=data.size();
@@ -156,17 +154,5 @@ namespace rs485_port_manager
 
     }
 
-    // void IOModule::grabberSrv(const std::shared_ptr<_Grabber::Request> request, std::shared_ptr<_Grabber::Response> response) {
-    //     queueObject msg;
-    //     msg.slave = SlaveId::SLAVE_ARM;
-
-    //     msg.cmd = Cmd::CMD_GRABBER;
-    //     msg.data.push_back(request->grabber_state);
-    //     this->sendMessage(msg);
-        
-    //     response->success=true;
-    //     RCLCPP_INFO(this->get_logger(), "Move to %d position finished ? : yes",request->grabber_state);
-
-    // }
 }
 

@@ -16,13 +16,9 @@
 #include "InterfaceModuleRS485.hpp"
 #include "sonia_common_ros2/msg/motors_values.hpp"
 #include "sonia_common_ros2/srv/static_pos.hpp"
-// #include "sonia_common_ros2/action/grabber.hpp"
-#include "sonia_common_ros2/srv/pince.hpp"
 
 using _MotorsValues = sonia_common_ros2::msg::MotorsValues;
 using _StaticPos=sonia_common_ros2::srv::StaticPos;
-// using _Grabber=sonia_common_ros2::srv::Pince;
-// using _GoalHandleGrabber = rclcpp_action::ServerGoalHandle<_Grabber>;
 
 namespace rs485_port_manager
 {
@@ -65,8 +61,6 @@ namespace rs485_port_manager
 
         void armStaticPos(const std::shared_ptr<_StaticPos::Request> request, std::shared_ptr<_StaticPos::Response> response);
 
-        // void grabberSrv(const std::shared_ptr<_Grabber::Request> request, std::shared_ptr<_Grabber::Response> response);
-
 
         /* Used to publish the information of the Kill Switch */
         rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
@@ -78,8 +72,6 @@ namespace rs485_port_manager
         // Service to move robot arm to specific static positions (home)
         rclcpp::Service<_StaticPos>::SharedPtr armStaticPosSrv;
 
-        // Service moving grabber
-        // rclcpp::Service<_Grabber>::SharedPtr armGrabberSrv;
         
     };
 

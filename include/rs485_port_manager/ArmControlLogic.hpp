@@ -22,9 +22,6 @@ namespace rs485_port_manager
             std::vector<uint8_t> motorsProcessing (const uint16_t _motor1, const uint16_t _motor2);
 
             std::vector<uint8_t> staticPosProcessing(const uint8_t _static_pos_wanted, const uint16_t current_motor1, const uint16_t current_motor2);
-
-            std::vector<uint8_t> grabberProcessing(const float _value);
-
             
 
         private:

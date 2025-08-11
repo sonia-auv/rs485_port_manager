@@ -42,7 +42,6 @@ namespace rs485_port_manager
         SLAVE_IO = 6,
         SLAVE_STATE_SCREEN = 7,
         SLAVE_PWR_MANAGEMENT = 8,  // AUV8 Only
-        SLAVE_ARM=9,
     };
 
     /**
@@ -62,14 +61,10 @@ namespace rs485_port_manager
         CMD_IO_TEMP = 0,
         CMD_IO_DROPPER_ACTION = 1,
         CMD_IO_TORPEDO_ACTION = 2,
-        CMD_IO_ARM_ACTION = 3,
+        CMD_IO_ARM_GRABBER=3,
         CMD_IO_LEAK_SENSOR = 4,
+        CMD_IO_ARM_MOTOR=5,
         CMD_KEEP_ALIVE = 30,
-        CMD_HOME=0,
-        CMD_REPOS=1,
-        CMD_MOTOR=2,
-        CMD_GRABBER=3,
-        CMD_OUT=255,
     };
 
     union bytesToFloat

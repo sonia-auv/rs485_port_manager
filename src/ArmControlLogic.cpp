@@ -31,9 +31,9 @@ namespace rs485_port_manager
 
         // Necessary if we decide to send CMD_OUT insted of CMD_MOTOR when values are outside the boundaries 
         if ((value_motor1==max_boundary_motor1 or value_motor1==min_boundary_motor1) or (value_motor2==max_boundary_motor2 or value_motor2==min_boundary_motor2))
-            data_motors.push_back(Cmd::CMD_MOTOR);
+            data_motors.push_back(Cmd::CMD_IO_ARM_MOTOR);
         else
-            data_motors.push_back(Cmd::CMD_MOTOR);
+            data_motors.push_back(Cmd::CMD_IO_ARM_MOTOR);
 
         data_motors.push_back((uint8_t)((value_motor1 >> 8) & 0xff));
         data_motors.push_back((uint8_t)((value_motor1 >> 0) & 0xff));
@@ -69,23 +69,6 @@ namespace rs485_port_manager
         data_static_pos=this->motorsProcessing(value_motor1,value_motor2);
 
         return data_static_pos;
-    }
-
-    // Basic function used to create a uint8_t vector, including grabber value and cmd which is reused to set up the queue object sent in IO Module
-    std::vector<uint8_t> ArmControlLogic::grabberProcessing(const float _value)
-    {
-        std::vector<uint8_t> data_grabber;
-        rs485_port_manager::bytesToFloat converter;
-        data_grabber.push_back(Cmd::CMD_GRABBER);
-        converter.value=std::clamp(_value,min_boundary_grabber,max_boundary_grabber);
-
-
-        data_grabber.push_back(converter.bytes[0]);
-        data_grabber.push_back(converter.bytes[1]);
-        data_grabber.push_back(converter.bytes[2]);
-        data_grabber.push_back(converter.bytes[3]);
-
-        return data_grabber;
     }
 
 }
