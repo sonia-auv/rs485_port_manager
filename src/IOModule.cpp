@@ -16,7 +16,7 @@ namespace rs485_port_manager
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
             "/provider_actuator/do_action", std::bind(&IOModule::processActuatorRequest, this, _1, _2));
         
-        armMotorsSubscriber = this->create_subscription<_MotorsValues>("/provider_arm/mov", 100, std::bind(&IOModule::armMotorsCallback, this, _1));
+        armMotorsSubscriber = this->create_subscription<_MotorsValuesArm>("/provider_arm/mov", 100, std::bind(&IOModule::armMotorsCallback, this, _1));
 
         armStaticPosSrv = this->create_service<_StaticPos>("/provider_arm/staticpos", std::bind(&IOModule::armStaticPos, this, _1, _2));
 
@@ -83,7 +83,7 @@ namespace rs485_port_manager
 
     }
 
-    void IOModule::armMotorsCallback(const _MotorsValues::SharedPtr msg) {
+    void IOModule::armMotorsCallback(const _MotorsValuesArm::SharedPtr msg) {
 
         rs485_port_manager::queueObject msgData;
         std::vector<uint8_t> data;

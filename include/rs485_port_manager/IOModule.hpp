@@ -14,10 +14,10 @@
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "InterfaceModuleRS485.hpp"
-#include "sonia_common_ros2/msg/motors_values.hpp"
+#include "sonia_common_ros2/msg/motors_values_arm.hpp"
 #include "sonia_common_ros2/srv/static_pos.hpp"
 
-using _MotorsValues = sonia_common_ros2::msg::MotorsValues;
+using _MotorsValuesArm = sonia_common_ros2::msg::MotorsValuesArm;
 using _StaticPos=sonia_common_ros2::srv::StaticPos;
 
 namespace rs485_port_manager
@@ -57,7 +57,7 @@ namespace rs485_port_manager
          */
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
 
-        void armMotorsCallback(const _MotorsValues::SharedPtr msg);
+        void armMotorsCallback(const _MotorsValuesArm::SharedPtr msg);
 
         void armStaticPos(const std::shared_ptr<_StaticPos::Request> request, std::shared_ptr<_StaticPos::Response> response);
 
@@ -67,7 +67,7 @@ namespace rs485_port_manager
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
         
         // Subscriber reading the three motor values
-        rclcpp::Subscription<_MotorsValues>::SharedPtr armMotorsSubscriber;
+        rclcpp::Subscription<_MotorsValuesArm>::SharedPtr armMotorsSubscriber;
 
         // Service to move robot arm to specific static positions (home)
         rclcpp::Service<_StaticPos>::SharedPtr armStaticPosSrv;
