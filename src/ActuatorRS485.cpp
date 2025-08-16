@@ -28,7 +28,7 @@ namespace rs485_port_manager
         switch (request->element){
             case  sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_DROPPER:
             {
-                ser.cmd=Cmd::CMD_IO_DROPPER_ACTION;
+                ser.cmd=Cmd::CMD_IO_TORPEDO_ACTION; // THIS VALUE IS INVERTED ON PURPOSE!!! THIS SHOULD BE ADDRESSED BY ELE AND LOG AFTER COMP 2025
                 ser.data.push_back(request->side);
 
                 sendMessage(ser);
@@ -37,7 +37,7 @@ namespace rs485_port_manager
             }
             case sonia_common_ros2::srv::ActuatorService::Request::ELEMENT_TORPEDO:
             {
-                ser.cmd=Cmd::CMD_IO_TORPEDO_ACTION;
+                ser.cmd=Cmd::CMD_IO_DROPPER_ACTION; // THIS VALUE IS INVERTED ON PURPOSE!!! THIS SHOULD BE ADDRESSED BY ELE AND LOG AFTER COMP 2025
                 ser.data.push_back(request->side);
 
                 sendMessage(ser);
