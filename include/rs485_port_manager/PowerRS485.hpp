@@ -12,6 +12,7 @@
 #include "sonia_common_ros2/msg/motor_pwm.hpp"
 
 #include "InterfaceModuleRS485.hpp"
+#include "RS485Provider.hpp"
 
 namespace rs485_port_manager{
 
@@ -23,6 +24,7 @@ namespace rs485_port_manager{
             ~PowerRS485();
 
         private:
+        RS485Provider *rs485;
 
         void publishMotorInfo(uint8_t cmd, std::vector<float> data);
 
@@ -64,7 +66,7 @@ namespace rs485_port_manager{
          *
          * @param msg the message from RS485
          */
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
+        void messageRS485CallBack(queueObject queue) override;
         
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPowerMessages>::SharedPtr _publisherMotorVoltages;
         rclcpp::Publisher<sonia_common_ros2::msg::BatteryPowerMessages>::SharedPtr _publisherBatteryVoltages;
@@ -76,9 +78,6 @@ namespace rs485_port_manager{
         rclcpp::Publisher<sonia_common_ros2::msg::MotorPwm>::SharedPtr _publisherThrusterPwm;
         rclcpp::Subscription<sonia_common_ros2::msg::MotorPwm>::SharedPtr _subscriberThrusterPwm;
         rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriberMotorOnOff;
-        
-        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriberMotor;
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherRS485;
 
         uint8_t esc_slave;
 

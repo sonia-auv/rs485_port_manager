@@ -12,6 +12,7 @@
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "InterfaceModuleRS485.hpp"
+#include "RS485Provider.hpp"
 
 namespace rs485_port_manager
 {
@@ -25,6 +26,7 @@ namespace rs485_port_manager
         
 
         private:
+        RS485Provider *rs485;
 
         /**
          * @brief Processes a actuator service request.
@@ -47,10 +49,9 @@ namespace rs485_port_manager
          *
          * @param msg the message from RS485
          */
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
+        void messageRS485CallBack(queueObject queue) override;
 
         /* Used to publish the information of the Kill Switch */
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Service<sonia_common_ros2::srv::ActuatorService>::SharedPtr _actuatorService;
     };
 

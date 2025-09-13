@@ -17,7 +17,8 @@
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 
 #include "CommonDefinitionRS485.hpp"
-
+#include "InterfaceModuleRS485.hpp"
+#include <vector>
 
 namespace rs485_port_manager
 {
@@ -25,7 +26,10 @@ namespace rs485_port_manager
     class RS485Provider : public rclcpp::Node
     {
         public:
-        RS485Provider();
+        /**
+         *  function to get the instance of RS485Provider
+         */
+        static RS485Provider *GetInstance();
         ~RS485Provider();
 
         /**
@@ -41,11 +45,23 @@ namespace rs485_port_manager
         void Kill();
 
         /**
+         * @brief add Message to send
+         */
+        void AddMessage(queueObject msg);
+
+        /**
          * @brief Start System
          */
         void Start();
 
+        /**
+         * @brief Add Observateur
+         */
+        void AddObservateur(rs485_port_manager::InterfaceModuleRS485 *interfaceModule);
+
         private:
+        static RS485Provider *_instance;
+        RS485Provider();
 
         /**
          * @brief Calculate Checksum.
@@ -88,6 +104,8 @@ namespace rs485_port_manager
         const uint8_t _GET_FEEDBACK_MSG[15] = {0x3A, 8, 15, 8, 1, 1, 1, 1, 1, 1, 1, 1, 0, 110, 0x0D};
         const uint8_t _EXPECTED_PWR_VOLT_SIZE = 10;
 
+        std::vector<rs485_port_manager::InterfaceModuleRS485*> ObservateurInterfaceModule;
+
         sonia_common_cpp::SerialConn _rs485Connection;
 
         std::thread _reader;
@@ -103,14 +121,6 @@ namespace rs485_port_manager
         sonia_common_cpp::SharedQueue<uint8_t> _parseQueue;
 
         bool _thread_control;
-
-        // all needed for the rework and the split
-
-        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr _subscriptionRS485;
-
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherKill;
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherIO;
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publisherMotor;
     };
 
 }
