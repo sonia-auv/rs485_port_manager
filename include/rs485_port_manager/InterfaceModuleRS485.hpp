@@ -24,7 +24,7 @@ namespace rs485_port_manager
             /**
              * @brief Method to read message from rs485
              */
-            virtual void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)=0;
+            virtual void messageRS485CallBack(queueObject queue)=0;
     };
 
 }

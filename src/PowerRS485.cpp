@@ -35,73 +35,63 @@ namespace rs485_port_manager{
             RCLCPP_INFO(this->get_logger(), "Error, Using default port AUV7");
         }
 
+        rs485 = RS485Provider::GetInstance();
+        rs485->AddObservateur(this);
+
+        rclcpp::QoS qosRelible(10);
+        qosRelible.reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
+
+
+        rclcpp::QoS qosBestEffort(10);
+        qosBestEffort.reliability(rclcpp::ReliabilityPolicy::BestEffort).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
+
         _publisherMotorVoltages =
-            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_voltages", 10);
+            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_voltages", qosRelible);
         _publisherMotorCurrents =
-            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_currents", 10);
+            this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>("/provider_power/motor_currents", qosRelible);
         _publisherMotorTemperature = this->create_publisher<sonia_common_ros2::msg::MotorPowerMessages>(
-            "/provider_power/motor_temperatures", 10);
+            "/provider_power/motor_temperatures", qosBestEffort);
         _publisherBatteryVoltages = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_voltages", 10);
+            "/provider_power/battery_voltages", qosBestEffort);
         _publisherBatteryCurrents = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_currents", 10);
+            "/provider_power/battery_currents", qosBestEffort);
         _publisherBatteryTemperature = this->create_publisher<sonia_common_ros2::msg::BatteryPowerMessages>(
-            "/provider_power/battery_temperatures", 10);
+            "/provider_power/battery_temperatures", qosBestEffort);
         _publisherMotorFeedback =
-            this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", 10);
-
-        _publisherThrusterPwm =
-            this->create_publisher<sonia_common_ros2::msg::MotorPwm>("/provider_thruster/thruster_pwm", 10);
-        _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
-            "/provider_thruster/thruster_pwm", 10, std::bind(&PowerRS485::PwmCallback, this, _1));
-        _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
-            "/provider_power/activate_motors", 10, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
+            this->create_publisher<sonia_common_ros2::msg::MotorFeedback>("/provider_power/motor_feedback", qosRelible);
         
-        _publisherRS485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>(
-            "/rs485/msgToSend", 10);
-
-        _subscriberMotor = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/motorMessage", 10
-                , std::bind(&PowerRS485::messageRS485CallBack, this, _1));
+        _subscriberThrusterPwm = this->create_subscription<sonia_common_ros2::msg::MotorPwm>(
+            "/provider_thruster/thruster_pwm", qosRelible, std::bind(&PowerRS485::PwmCallback, this, _1));
+        _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
+            "/provider_power/activate_motors", qosRelible, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
     }
 
     // node destructor
     PowerRS485::~PowerRS485() {}
 
     void PowerRS485::sendMessage(queueObject queue){
-        sonia_common_ros2::msg::RS485msg msgRS485 = sonia_common_ros2::msg::RS485msg();
-
-        msgRS485.cmd = queue.cmd;
-        msgRS485.slave = queue.slave;
-        msgRS485.data = queue.data;
-
-        _publisherRS485->publish(msgRS485);
+        rs485->AddMessage(queue);
     }
 
-    void PowerRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg){
-
-        queueObject ser;
-        ser.cmd = msg.cmd;
-        ser.slave = msg.slave;
-
-        ser.data = msg.data;
-        switch (ser.slave)
+    void PowerRS485::messageRS485CallBack(queueObject queue){
+        switch (queue.slave)
         {
             case SlaveId::SLAVE_PWR_MANAGEMENT:
-                processPowerManagement(ser.cmd, ser.data);
+                processPowerManagement(queue.cmd, queue.data);
                 break;
             case SlaveId::SLAVE_PSU0:
             {
                 //Motor 1 and Motor 5
-                switch (ser.cmd)
+                switch (queue.cmd)
                 {
                     case Cmd::CMD_VOLTAGE:
-                        psu_volt_array[0]=ser.data;
+                        psu_volt_array[0]=queue.data;
                         break;
                     case Cmd::CMD_CURRENT:
-                        psu_curr_array[0]=ser.data;
+                        psu_curr_array[0]=queue.data;
                         break;
                     case Cmd::CMD_READ_MOTOR:
-                        psu_feed_array[0]=ser.data;
+                        psu_feed_array[0]=queue.data;
                         break;                                        
                     default:
                         break;
@@ -111,13 +101,13 @@ namespace rs485_port_manager{
             case SlaveId::SLAVE_PSU1:
             {
                 //Motor 2 and Motor 6
-                switch (ser.cmd)
+                switch (queue.cmd)
                 {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[1]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[1]=queue.data;
                         break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[1]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[1]=queue.data;
                         break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=queue.data;
                         break;                                        
                     default:
                         break;
@@ -127,13 +117,13 @@ namespace rs485_port_manager{
             case SlaveId::SLAVE_PSU2:
             {
                 //Motor 3 and Motor 7
-                switch (msg.cmd)
+                switch (queue.cmd)
                 {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[2]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[2]=queue.data;
                         break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[2]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[2]=queue.data;
                         break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=queue.data;
                         break;                                        
                     default:
                         break;
@@ -143,26 +133,23 @@ namespace rs485_port_manager{
             case SlaveId::SLAVE_PSU3:
             {
                 //Motor 4 and Motor 8
-                switch (msg.cmd)
+                switch (queue.cmd)
                 {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[3]=ser.data;
+                    case Cmd::CMD_VOLTAGE: psu_volt_array[3]=queue.data;
                         break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[3]=ser.data;
+                    case Cmd::CMD_CURRENT: psu_curr_array[3]=queue.data;
                         break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=ser.data;
+                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=queue.data;
                         break;                                        
                     default:
                         break;
                 }//end switch case  
                 break;
             }
-            default:
-                RCLCPP_WARN(this->get_logger(), "Unknown slave: %X", ser.slave);
-                break;
         }
         
-        if(ser.slave==SlaveId::SLAVE_PSU0 || ser.slave==SlaveId::SLAVE_PSU1 || ser.slave==SlaveId::SLAVE_PSU2 || ser.slave==SlaveId::SLAVE_PSU3 ){
-                switch(ser.cmd){
+        if(queue.slave==SlaveId::SLAVE_PSU0 || queue.slave==SlaveId::SLAVE_PSU1 || queue.slave==SlaveId::SLAVE_PSU2 || queue.slave==SlaveId::SLAVE_PSU3 ){
+                switch(queue.cmd){
                     case Cmd::CMD_VOLTAGE:
                     {
                         processAUV7PowerManagement(Cmd::CMD_VOLTAGE, psu_volt_array);

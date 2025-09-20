@@ -9,13 +9,15 @@ namespace rs485_port_manager
     KillMissionRS485::KillMissionRS485() // Node constructor
     : Node("rs485_kill_switch")
     {
+        rs485 = RS485Provider::GetInstance();
+        rs485->AddObservateur(this);
 
-        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", 10);
+        rclcpp::QoS qos(10);
+        qos.reliability(rclcpp::ReliabilityPolicy::Reliable).durability(rclcpp::DurabilityPolicy::Volatile).history(rclcpp::HistoryPolicy::KeepLast);
+
+        _publisherKill = this->create_publisher<sonia_common_ros2::msg::KillStatus>("/provider_rs485/kill_status", qos);
         _publisherMission =
-            this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", 10);
-        _publishers485 = this->create_publisher<sonia_common_ros2::msg::RS485msg>("/rs485/msgToSend", 10);
-        _subscriberKill = this->create_subscription<sonia_common_ros2::msg::RS485msg>("/rs485/killMessage", 10, 
-            std::bind(&KillMissionRS485::messageRS485CallBack, this, _1));
+            this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", qos);
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillMissionRS485::pollKillMission, this));
     }
 
@@ -23,12 +25,7 @@ namespace rs485_port_manager
 
     void KillMissionRS485::sendMessage(queueObject queue)
     {
-        sonia_common_ros2::msg::RS485msg to_return = sonia_common_ros2::msg::RS485msg();
-        to_return.slave = queue.slave;
-        to_return.cmd = queue.cmd;
-        to_return.data = queue.data;
-
-        _publishers485->publish(to_return);
+        rs485->AddMessage(queue);
     }
     void KillMissionRS485::pollKillMission()
     {
@@ -52,25 +49,23 @@ namespace rs485_port_manager
 
         sendMessage(msg);
     }
-    void KillMissionRS485::messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg)
+    void KillMissionRS485::messageRS485CallBack(queueObject queue)
     {
-        queueObject ser;
-        ser.cmd = msg.cmd;
-        ser.slave = msg.slave;
-        ser.data = msg.data;
         
-        switch (ser.cmd)
-        {
-            case Cmd::CMD_KILL:
-                // get data value
-                // publish on kill publisher
-                publishKill(ser.data[0] == 1);
-                break;
-            case Cmd::CMD_MISSION:
-                // get data value
-                // publish on mission publisher
-                publishMission(ser.data[0] == 1);
-                break;
+        if(queue.slave == SlaveId::SLAVE_KILLMISSION){
+            switch (queue.cmd)
+            {
+                case Cmd::CMD_KILL:
+                    // get data value
+                    // publish on kill publisher
+                    publishKill(queue.data[0] == 1);
+                    break;
+                case Cmd::CMD_MISSION:
+                    // get data value
+                    // publish on mission publisher
+                    publishMission(queue.data[0] == 1);
+                    break;
+            }
         }
 
     }

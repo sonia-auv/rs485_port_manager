@@ -18,6 +18,7 @@
 #include "sonia_common_ros2/msg/mission_status.hpp"
 #include "InterfaceModuleRS485.hpp"
 #include "sonia_common_ros2/msg/mission_status.hpp"
+#include "RS485Provider.hpp"
 
 namespace rs485_port_manager
 {
@@ -41,9 +42,10 @@ namespace rs485_port_manager
          *
          * @param msg the message from RS485
          */
-        void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg) override;
+        void messageRS485CallBack(queueObject queue) override;
 
         private:
+        RS485Provider *rs485;
         /**
          * @brief Polls the status of kill and mission via RS485 connection.
          *
@@ -67,9 +69,7 @@ namespace rs485_port_manager
         void publishMission(bool status);
 
         /* Used to publish the information of the Kill Switch */
-        rclcpp::Subscription<sonia_common_ros2::msg::RS485msg>::SharedPtr  _subscriberKill;
         rclcpp::Publisher<sonia_common_ros2::msg::KillStatus>::SharedPtr _publisherKill;
-        rclcpp::Publisher<sonia_common_ros2::msg::RS485msg>::SharedPtr _publishers485;
         rclcpp::Publisher<sonia_common_ros2::msg::MissionStatus>::SharedPtr _publisherMission;
         rclcpp::TimerBase::SharedPtr _timerKillMission;
     };
