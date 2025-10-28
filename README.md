@@ -39,21 +39,22 @@
 
 | Type                  | Name                             | Direction       | Message/Service Type                    | Description                        |
 | --------------------- | -------------------------------- | ----------------| --------------------------------------- | ---------------------------------- |
-| Topic                 | `/provider_rs485/mission_status` | Published       | `sonia_common_ros2/msg/KillStatus`      | template                           |
-| Topic                 | `/provider_rs485/kill_status`    | Published       | `sonia_common_ros2/msg/MissionStatus`   | template                           |
+| Topic                 | `/provider_rs485/mission_status` | Published       | `sonia_common_ros2/msg/KillStatus`      | The status of the mission switch   |
+| Topic                 | `/provider_rs485/kill_status`    | Published       | `sonia_common_ros2/msg/MissionStatus`   | The status of the kill switche     |
 
 ### Power
 
-| Type          | Name                                    | Direction       | Message/Service Type                         | Description                       |
-| ------------- | --------------------------------------- | --------------- | -------------------------------------------- | --------------------------------- |
-| Topic         | `/provider_power/battery_voltages`      | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | template                          |
-| Topic         | `/provider_power/battery_temperatures`  | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | template                          |
-| Topic         | `/provider_power/battery_currents`      | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | template                          |
-| Topic         | `/provider_power/motor_voltages`        | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | template                          |
-| Topic         | `/provider_power/motor_temperatures`    | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | template                          |
-| Topic         | `/provider_power/motor_currents`        | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | template                          |
-| Topic         | `/provider_power/motor_feedback`        | Published       | `sonia_common_ros2/msg/MotorFeedback`        | template                          |
-
+| Type          | Name                                    | Direction       | Message/Service Type                         | Description                                |
+| ------------- | --------------------------------------- | --------------- | -------------------------------------------- | ------------------------------------------ |
+| Topic         | `/provider_power/battery_voltages`      | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | The measured battery voltages              |
+| Topic         | `/provider_power/battery_temperatures`  | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | The measured battery temperatures          |
+| Topic         | `/provider_power/battery_currents`      | Published       | `sonia_common_ros2/msg/BatteryPowerMessages` | The measured battery currents              |
+| Topic         | `/provider_power/motor_voltages`        | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | The measured motor voltages                |
+| Topic         | `/provider_power/motor_temperatures`    | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | The measured motor temperatures            |
+| Topic         | `/provider_power/motor_currents`        | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | The measured motor currents                |
+| Topic         | `/provider_power/motor_feedback`        | Published       | `sonia_common_ros2/msg/MotorFeedback`        | Feedback of the motors state               |
+| Topic         | `/provider_power/activate_motors`       | Subscribed      | `std_msgs/msg/Bool`                          | Request tp activate/deactivate the motors  |
+| Topic         | `/provider_thruster/thruster_pwm`       | Subscribed      | `sonia_common_ros2/msg/MotorPwm`             | Controls the PWM of the motors             |
 
 ### Actuator
 
