@@ -1,6 +1,6 @@
 # rs485_port_manager
 
-*description here*
+The project opens up a **RS485** serial connection to allow the onboard computer to communicate with various components on the system: the IO board and the power management of the system. The data recieved is then parsed and transmitted using **ROS2** communication on the network through their respective topics/services.
 
 ---
 
@@ -40,7 +40,7 @@
 | Type                  | Name                             | Direction       | Message/Service Type                    | Description                        |
 | --------------------- | -------------------------------- | ----------------| --------------------------------------- | ---------------------------------- |
 | Topic                 | `/provider_rs485/mission_status` | Published       | `sonia_common_ros2/msg/KillStatus`      | The status of the mission switch   |
-| Topic                 | `/provider_rs485/kill_status`    | Published       | `sonia_common_ros2/msg/MissionStatus`   | The status of the kill switche     |
+| Topic                 | `/provider_rs485/kill_status`    | Published       | `sonia_common_ros2/msg/MissionStatus`   | The status of the kill switch      |
 
 ### Power
 
