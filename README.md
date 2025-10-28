@@ -1,6 +1,6 @@
 # rs485_port_manager
 
-The project opens up a **RS485** serial connection to allow the onboard computer to communicate with various components on the system: the IO board and the power management of the system. The data recieved is then parsed and transmitted using **ROS2** communication on the network through their respective topics/services.
+The project opens up a **RS485** serial connection to allow the onboard computer to communicate with various components on the system: the IO board and the power management. The data recieved is then parsed and transmitted using **ROS2** communication on the network through their respective topics/services.
 
 ---
 
