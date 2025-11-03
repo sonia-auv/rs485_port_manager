@@ -53,7 +53,7 @@ The project opens up a serial connection to allow the onboard computer to commun
 | Topic         | `/provider_power/motor_temperatures`    | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | The measured motor temperatures            |
 | Topic         | `/provider_power/motor_currents`        | Published       | `sonia_common_ros2/msg/MotorPowerMessages`   | The measured motor currents                |
 | Topic         | `/provider_power/motor_feedback`        | Published       | `sonia_common_ros2/msg/MotorFeedback`        | Feedback of the motors state               |
-| Topic         | `/provider_power/activate_motors`       | Subscribed      | `std_msgs/msg/Bool`                          | Request tp activate/deactivate the motors  |
+| Topic         | `/provider_power/activate_motors`       | Subscribed      | `std_msgs/msg/Bool`                          | Request to activate/deactivate the motors  |
 | Topic         | `/provider_thruster/thruster_pwm`       | Subscribed      | `sonia_common_ros2/msg/MotorPwm`             | Controls the PWM of the motors             |
 
 ### Actuator
@@ -73,6 +73,14 @@ source install/setup.bash
 ---
 
 ## Launch Instructions
+
+### Environment variables
+Required environment variables to launch the project
+
+```bash
+export AUV={prototype_identifier}
+```
+replace `{prototype_identifier}` with available options: `AUV8` | `AUV7` | `LITE1` | `LOCAL`.
 
 ### Default launch
 
