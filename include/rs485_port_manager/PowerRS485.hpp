@@ -40,8 +40,6 @@ namespace rs485_port_manager{
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
 
-        void processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]);
-
         inline bool checkNoEmptyVector(std::vector<uint8_t> (&array)[4]){
             for (const auto& v: array){
                 if(v.empty()){
@@ -81,13 +79,7 @@ namespace rs485_port_manager{
 
         uint8_t esc_slave;
 
-        std::vector<uint8_t> psu_volt_array[4];
-        std::vector<uint8_t> psu_curr_array[4];
-        std::vector<uint8_t> psu_feed_array[4];
-
         const uint8_t NB_THRUSTER = 8;
-        //Two motor by bord
-        const uint8_t NB_THRUSTER_BY_PSU_AUV7 = NB_THRUSTER/4;
         const uint8_t NB_BATTERY = 2;
 
         union _bytesToFloat

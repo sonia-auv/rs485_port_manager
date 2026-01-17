@@ -15,6 +15,7 @@
 #include "sonia_common_cpp/SharedQueue.hpp"
 #include "sonia_common_cpp/SerialConn.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
+#include "sonia_common_ros2/msg/node_status.hpp"
 
 #include "CommonDefinitionRS485.hpp"
 #include "InterfaceModuleRS485.hpp"
@@ -93,6 +94,11 @@ namespace rs485_port_manager
          */
         void parseData();
 
+        /**
+         * @brief Publishes node information of its state and quality.
+         */
+        void publishStatus();
+
         void messageRS485CallBack(const sonia_common_ros2::msg::RS485msg &msg);
 
         static const int _DATA_READ_CHUNCK = 1024;
@@ -106,7 +112,12 @@ namespace rs485_port_manager
 
         std::vector<rs485_port_manager::InterfaceModuleRS485*> ObservateurInterfaceModule;
 
+        rclcpp::Publisher<sonia_common_ros2::msg::NodeStatus>::SharedPtr _publisherNodeStatus;
+        
+        rclcpp::TimerBase::SharedPtr _timerNodeStatus;
+
         sonia_common_cpp::SerialConn _rs485Connection;
+        sonia_common_ros2::msg::NodeStatus _node_status;
 
         std::thread _reader;
         std::thread _parser;

@@ -13,6 +13,13 @@ RS485Provider* RS485Provider::_instance= nullptr;;
         : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         ObservateurInterfaceModule = {};
+
+        _publisherNodeStatus = this->create_publisher<sonia_common_ros2::msg::NodeStatus>("/system_monitor/node_status",1);
+        _timerNodeStatus = this->create_wall_timer(500ms, std::bind(&RS485Provider::publishStatus, this));
+
+        _node_status.node_name = this->get_name();
+        _node_status.quality = sonia_common_ros2::msg::NodeStatus::Q_OK;
+        _node_status.state = sonia_common_ros2::msg::NodeStatus::STATE_INITIALIZING;
     }
 
     // node destructor
@@ -40,6 +47,8 @@ RS485Provider* RS485Provider::_instance= nullptr;;
         _reader = std::thread(std::bind(&RS485Provider::readData, this));
         _writer = std::thread(std::bind(&RS485Provider::writeData, this));
         _parser = std::thread(std::bind(&RS485Provider::parseData, this));
+
+        _node_status.state = sonia_common_ros2::msg::NodeStatus::STATE_RUNNING;
     }
 
     bool RS485Provider::OpenPort()
@@ -72,6 +81,11 @@ RS485Provider* RS485Provider::_instance= nullptr;;
             check += (uint8_t)data[i];
         }
         return {check >> 8, check & 0XFF};
+    }
+
+    void RS485Provider::publishStatus(){
+        _node_status.stamp = this->now();
+        _publisherNodeStatus->publish(_node_status);
     }
 
     void RS485Provider::Kill()
