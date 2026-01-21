@@ -64,13 +64,8 @@ namespace rs485_port_manager{
     }
 
     void PowerRS485::messageRS485CallBack(queueObject queue){
-        switch (queue.slave)
-        {
-            case SlaveId::SLAVE_PWR_MANAGEMENT:
-                processPowerManagement(queue.cmd, queue.data);
-                break;     
-        }
-}
+        processPowerManagement(queue.cmd, queue.data);    
+    }
 
     void PowerRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
