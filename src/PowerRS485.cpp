@@ -73,26 +73,13 @@ namespace rs485_port_manager{
         ser.cmd = Cmd::CMD_ACT_MOTOR;
         ser.slave = esc_slave;
 
-        ToggleMotors(msg.data, NB_THRUSTER, ser.data);
-        sendMessage(ser);
-    }
+        uint8_t value = msg.data ? 1 : 0;
 
-    void PowerRS485::ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data)
-    {
-        if (state)
+        for (size_t i = 0; i < NB_THRUSTER; ++i)
         {
-            for (size_t i = 0; i < size; i++)
-            {
-                data.push_back(1);
-            }
+            ser.data.push_back(value);
         }
-        else
-        {
-            for (size_t i = 0; i < size; i++)
-            {
-                data.push_back(0);
-            }
-        }
+        sendMessage(ser);
     }
 
     void PowerRS485::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)

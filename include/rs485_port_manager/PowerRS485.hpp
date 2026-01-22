@@ -34,8 +34,6 @@ namespace rs485_port_manager{
 
         void EnableDisableMotors(const std_msgs::msg::Bool &msg);
 
-        void ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data);
-
         void PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg);
 
         void processPowerManagement(const uint8_t cmd, const std::vector<uint8_t> data);
