@@ -166,10 +166,6 @@ RS485Provider* RS485Provider::_instance= nullptr;;
 
     void RS485Provider::parseData()
     {
-        std::vector<uint8_t> psu_volt_array[4];
-        std::vector<uint8_t> psu_curr_array[4];
-        std::vector<uint8_t> psu_feed_array[4];
-
         std::unique_lock<std::mutex> _lockParser(_mtxParser);
 
         while (_thread_control)

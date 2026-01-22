@@ -72,6 +72,7 @@ namespace rs485_port_manager{
         queueObject ser;
         ser.cmd = Cmd::CMD_ACT_MOTOR;
         ser.slave = esc_slave;
+        ser.data.reserve(NB_THRUSTER);
 
         uint8_t value = msg.data ? 1 : 0;
 
