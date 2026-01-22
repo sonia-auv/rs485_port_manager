@@ -133,6 +133,7 @@ namespace rs485_port_manager{
         {
             case Cmd::CMD_VOLTAGE:
                 _publisherMotorVoltages->publish(msg);
+                RCLCPP_INFO(this->get_logger(), "motorvolt");
                 break;
             case Cmd::CMD_CURRENT:
                 _publisherMotorCurrents->publish(msg);
@@ -143,6 +144,7 @@ namespace rs485_port_manager{
             default:
                 break;
         }
+        RCLCPP_INFO(this->get_logger(), "publish motor");
     }
 
     void PowerRS485::publishBattery(uint8_t cmd, float *data)
