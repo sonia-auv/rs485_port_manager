@@ -64,8 +64,9 @@ namespace rs485_port_manager{
     }
 
     void PowerRS485::messageRS485CallBack(queueObject queue){
-        processPowerManagement(queue.cmd, queue.data);
-        RCLCPP_INFO(this->get_logger(), "motorvolt");    
+        if(queue.slave == SLAVE_PWR_MANAGEMENT){
+            processPowerManagement(queue.cmd, queue.data);
+        }    
     }
 
     void PowerRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
@@ -89,7 +90,7 @@ namespace rs485_port_manager{
         queueObject ser;
         ser.cmd = Cmd::CMD_PWM;
         ser.slave = esc_slave;
-        ser.data.clear();
+        ser.data.reserve(NB_THRUSTER*2);
         
         ser.data.push_back(msg.motor1 >> 8);
         ser.data.push_back(msg.motor1 & 0xFF);
