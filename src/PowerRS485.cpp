@@ -8,22 +8,15 @@ namespace rs485_port_manager{
 
     PowerRS485::PowerRS485() 
     : Node("powerRS485_provider"){
-        try
-        {
-            const char *auv = std::getenv("AUV");
-            if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
-            {
-                esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-                RCLCPP_INFO(this->get_logger(), "Using %s port", auv);
-            }
-            else
-                RCLCPP_INFO(this->get_logger(), "Unknown ENV var");
-        }
-        catch (...)
+    
+        const char *auv = std::getenv("AUV");
+        if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
         {
             esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-            RCLCPP_INFO(this->get_logger(), "Error, Using default port");
+            RCLCPP_INFO(this->get_logger(), "Using %s port", auv);
         }
+        else
+            throw std::runtime_error("Unknown AUV type. Please set AUV env variable to LOCAL, LITE1 or AUV8");
 
         rs485 = RS485Provider::GetInstance();
         rs485->AddObservateur(this);

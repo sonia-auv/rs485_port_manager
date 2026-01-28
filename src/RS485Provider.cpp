@@ -20,6 +20,8 @@ RS485Provider* RS485Provider::_instance= nullptr;;
         _node_status.node_name = this->get_name();
         _node_status.quality = sonia_common_ros2::msg::NodeStatus::Q_OK;
         _node_status.state = sonia_common_ros2::msg::NodeStatus::STATE_INITIALIZING;
+
+        RCLCPP_INFO(this->get_logger(), "initilized RS485 Provider");
     }
 
     // node destructor
@@ -86,6 +88,8 @@ RS485Provider* RS485Provider::_instance= nullptr;;
     void RS485Provider::publishStatus(){
         _node_status.stamp = this->now();
         _publisherNodeStatus->publish(_node_status);
+
+        RCLCPP_INFO(this->get_logger(), "publishing node status");
     }
 
     void RS485Provider::Kill()
