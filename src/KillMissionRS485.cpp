@@ -1,8 +1,6 @@
 #include "rs485_port_manager/KillMissionRS485.hpp"
 
 using namespace std::chrono_literals;
-using std::placeholders::_1;
-using std::placeholders::_2;
 
 namespace rs485_port_manager
 {

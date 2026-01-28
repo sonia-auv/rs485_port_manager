@@ -28,7 +28,7 @@ namespace rs485_port_manager{
 
         void publishMotorInfo(uint8_t cmd, std::vector<float> data);
 
-        void publishMotorFeedback(std::vector<uint8_t> data);
+        void publishMotorFeedback(const std::vector<uint8_t> data);
 
         void publishBattery(uint8_t cmd, float *data);
 

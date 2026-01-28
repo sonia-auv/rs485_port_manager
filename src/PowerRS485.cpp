@@ -162,7 +162,7 @@ namespace rs485_port_manager{
         }
     }
 
-    void PowerRS485::publishMotorFeedback(std::vector<uint8_t> data)
+    void PowerRS485::publishMotorFeedback(const std::vector<uint8_t> data)
     {
         sonia_common_ros2::msg::MotorFeedback msg;
 

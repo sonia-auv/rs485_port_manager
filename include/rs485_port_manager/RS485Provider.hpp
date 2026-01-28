@@ -19,7 +19,6 @@
 
 #include "CommonDefinitionRS485.hpp"
 #include "InterfaceModuleRS485.hpp"
-#include <vector>
 
 namespace rs485_port_manager
 {
