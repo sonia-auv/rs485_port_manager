@@ -10,7 +10,7 @@ namespace rs485_port_manager
 RS485Driver* RS485Driver::_instance= nullptr;
 
     RS485Driver::RS485Driver()
-        : Node("rs485_provider"), _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
+        : _rs485Connection("/dev/RS485", B115200, false), _thread_control(true)
     {
         ObservateurInterfaceModule = {};
     }

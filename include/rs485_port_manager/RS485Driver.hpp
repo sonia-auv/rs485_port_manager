@@ -23,7 +23,7 @@
 namespace rs485_port_manager
 {
 
-    class RS485Driver : public rclcpp::Node
+    class RS485Driver
     {
         public:
         /**

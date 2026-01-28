@@ -17,7 +17,6 @@ namespace rs485_port_manager
     }
    
     void RS485Provider::publishStatus(){
-        RCLCPP_INFO(this->get_logger(), "publishing node status: %s", _node_status.node_name.c_str());
         _node_status.stamp = this->now();
         _publisherNodeStatus->publish(_node_status);
     }
