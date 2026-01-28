@@ -18,7 +18,7 @@ namespace rs485_port_manager{
         else
             throw std::runtime_error("Unknown AUV type. Please set AUV env variable to LOCAL, LITE1 or AUV8");
 
-        rs485 = RS485Provider::GetInstance();
+        rs485 = RS485Driver::GetInstance();
         rs485->AddObservateur(this);
 
         rclcpp::QoS qosRelible(10);
@@ -48,9 +48,6 @@ namespace rs485_port_manager{
         _subscriberMotorOnOff = this->create_subscription<std_msgs::msg::Bool>(
             "/provider_power/activate_motors", qosRelible, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
     }
-
-    // node destructor
-    PowerRS485::~PowerRS485() {}
 
     void PowerRS485::sendMessage(queueObject queue){
         rs485->AddMessage(queue);

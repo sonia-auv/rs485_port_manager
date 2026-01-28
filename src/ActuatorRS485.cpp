@@ -10,12 +10,11 @@ namespace rs485_port_manager
     ActuatorRS485::ActuatorRS485() // Node constructor
     : Node("rs485_io_module")
     {
-        rs485 = RS485Provider::GetInstance();
+        rs485 = RS485Driver::GetInstance();
         rs485->AddObservateur(this);
         _actuatorService = this->create_service<sonia_common_ros2::srv::ActuatorService>(
             "/provider_actuator/do_action", std::bind(&ActuatorRS485::processActuatorRequest, this, _1, _2));
     }
-    ActuatorRS485::~ActuatorRS485() {}
 
     void ActuatorRS485::processActuatorRequest(
     const std::shared_ptr<sonia_common_ros2::srv::ActuatorService::Request> request,

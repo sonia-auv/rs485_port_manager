@@ -12,7 +12,7 @@
 #include "sonia_common_ros2/srv/actuator_service.hpp"
 #include "sonia_common_ros2/msg/rs485msg.hpp"
 #include "InterfaceModuleRS485.hpp"
-#include "RS485Provider.hpp"
+#include "RS485Driver.hpp"
 
 namespace rs485_port_manager
 {
@@ -22,11 +22,11 @@ namespace rs485_port_manager
         
         public:
             ActuatorRS485();
-            ~ActuatorRS485();
+            ~ActuatorRS485() = default;
         
 
         private:
-        RS485Provider *rs485;
+        RS485Driver *rs485;
 
         /**
          * @brief Processes a actuator service request.

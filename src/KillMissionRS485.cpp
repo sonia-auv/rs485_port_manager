@@ -7,7 +7,7 @@ namespace rs485_port_manager
     KillMissionRS485::KillMissionRS485() // Node constructor
     : Node("rs485_kill_switch")
     {
-        rs485 = RS485Provider::GetInstance();
+        rs485 = RS485Driver::GetInstance();
         rs485->AddObservateur(this);
 
         rclcpp::QoS qos(10);
@@ -18,8 +18,6 @@ namespace rs485_port_manager
             this->create_publisher<sonia_common_ros2::msg::MissionStatus>("/provider_rs485/mission_status", qos);
         _timerKillMission = this->create_wall_timer(500ms, std::bind(&KillMissionRS485::pollKillMission, this));
     }
-
-    KillMissionRS485::~KillMissionRS485(){}
 
     void KillMissionRS485::sendMessage(queueObject queue)
     {
