@@ -19,7 +19,7 @@ namespace rs485_port_manager
     {
         public:
             /**
-             *  function to get the instance of RS485Provider
+             * @brief function to get the instance of RS485Provider
              */
             RS485Provider();
             ~RS485Provider() = default;
