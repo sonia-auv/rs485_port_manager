@@ -1,0 +1,42 @@
+#pragma once
+
+#include <functional>
+#include <rclcpp/rclcpp.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <vector>
+
+#include "sonia_common_ros2/msg/rs485msg.hpp"
+#include "InterfaceModuleRS485.hpp"
+#include "RS485Provider.hpp"
+
+namespace rs485_port_manager
+{
+    class LedRS485 : InterfaceModuleRS485, public rclcpp::Node
+    {
+        public:
+            LedRS485();
+            ~LedRS485() = default;
+
+            /**
+             * @brief method to send message to rs485
+             *
+             * @param queue the queueObject to send to RS485
+             */
+            void sendMessage(queueObject queue) override;
+
+            /**
+             * @brief Method to read message from rs485
+             *
+             * @param msg the message from RS485
+             */
+            void messageRS485CallBack(queueObject queue) override;
+        private:
+            RS485Provider *rs485;
+
+            void pollLedState();
+
+            rclcpp::TimerBase::SharedPtr _timerLedState;
+            rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _publisherLed;
+
+    };
+} //namespace rs485_port_manager
