@@ -6,36 +6,19 @@ using namespace std::chrono_literals;
 
 namespace rs485_port_manager{
 
-
     PowerRS485::PowerRS485() 
-    : Node("motorRS485_provider"){
-        try
+    : Node("powerRS485_provider"){
+    
+        const char *auv = std::getenv("AUV");
+        if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
         {
-            const char *auv = std::getenv("AUV");
-            if (strcmp(auv, "AUV8")==0 || strcmp(auv, "LOCAL")==0 || strcmp(auv, "LITE1")==0)
-            {
-                esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-                RCLCPP_INFO(this->get_logger(), "Using %s port", auv);
-            }
-            else if(strcmp(auv, "AUV7")==0)
-            {
-                esc_slave = SlaveId::SLAVE_ESC;
-                RCLCPP_INFO(this->get_logger(), "Using AUV7 port");
-            }
-            else
-            {
-                esc_slave = SlaveId::SLAVE_ESC;
-                RCLCPP_INFO(this->get_logger(), "Using default port AUV7");
-            }
-
+            esc_slave = SlaveId::SLAVE_PWR_MANAGEMENT;
+            RCLCPP_INFO(this->get_logger(), "Using %s port", auv);
         }
-        catch (...)
-        {
-            esc_slave = SlaveId::SLAVE_ESC;
-            RCLCPP_INFO(this->get_logger(), "Error, Using default port AUV7");
-        }
+        else
+            throw std::runtime_error("Unknown AUV type. Please set AUV env variable to LOCAL, LITE1 or AUV8");
 
-        rs485 = RS485Provider::GetInstance();
+        rs485 = RS485Driver::GetInstance();
         rs485->AddObservateur(this);
 
         rclcpp::QoS qosRelible(10);
@@ -66,172 +49,30 @@ namespace rs485_port_manager{
             "/provider_power/activate_motors", qosRelible, std::bind(&PowerRS485::EnableDisableMotors, this, _1));
     }
 
-    // node destructor
-    PowerRS485::~PowerRS485() {}
-
     void PowerRS485::sendMessage(queueObject queue){
         rs485->AddMessage(queue);
     }
 
     void PowerRS485::messageRS485CallBack(queueObject queue){
-        switch (queue.slave)
-        {
-            case SlaveId::SLAVE_PWR_MANAGEMENT:
-                processPowerManagement(queue.cmd, queue.data);
-                break;
-            case SlaveId::SLAVE_PSU0:
-            {
-                //Motor 1 and Motor 5
-                switch (queue.cmd)
-                {
-                    case Cmd::CMD_VOLTAGE:
-                        psu_volt_array[0]=queue.data;
-                        break;
-                    case Cmd::CMD_CURRENT:
-                        psu_curr_array[0]=queue.data;
-                        break;
-                    case Cmd::CMD_READ_MOTOR:
-                        psu_feed_array[0]=queue.data;
-                        break;                                        
-                    default:
-                        break;
-                }//end switch case
-                break;
-            }
-            case SlaveId::SLAVE_PSU1:
-            {
-                //Motor 2 and Motor 6
-                switch (queue.cmd)
-                {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[1]=queue.data;
-                        break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[1]=queue.data;
-                        break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[1]=queue.data;
-                        break;                                        
-                    default:
-                        break;
-                }//end switch case
-                break;
-            }
-            case SlaveId::SLAVE_PSU2:
-            {
-                //Motor 3 and Motor 7
-                switch (queue.cmd)
-                {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[2]=queue.data;
-                        break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[2]=queue.data;
-                        break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[2]=queue.data;
-                        break;                                        
-                    default:
-                        break;
-                }//end switch case
-                break;
-            }
-            case SlaveId::SLAVE_PSU3:
-            {
-                //Motor 4 and Motor 8
-                switch (queue.cmd)
-                {
-                    case Cmd::CMD_VOLTAGE: psu_volt_array[3]=queue.data;
-                        break;
-                    case Cmd::CMD_CURRENT: psu_curr_array[3]=queue.data;
-                        break;
-                    case Cmd::CMD_READ_MOTOR:  psu_feed_array[3]=queue.data;
-                        break;                                        
-                    default:
-                        break;
-                }//end switch case  
-                break;
-            }
-        }
-        
-        if(queue.slave==SlaveId::SLAVE_PSU0 || queue.slave==SlaveId::SLAVE_PSU1 || queue.slave==SlaveId::SLAVE_PSU2 || queue.slave==SlaveId::SLAVE_PSU3 ){
-                switch(queue.cmd){
-                    case Cmd::CMD_VOLTAGE:
-                    {
-                        processAUV7PowerManagement(Cmd::CMD_VOLTAGE, psu_volt_array);
-                        break;
-                    }
-                    case Cmd::CMD_CURRENT:
-                    {
-                        processAUV7PowerManagement(Cmd::CMD_CURRENT, psu_curr_array); 
-                        break;
-                    }
-                    case Cmd::CMD_READ_MOTOR:
-                    {
-                        processAUV7PowerManagement(Cmd::CMD_READ_MOTOR, psu_feed_array); 
-                        break;
-                    }
-                    default:{
-                        RCLCPP_ERROR(this->get_logger(), "ERROR, Unkown CMD for AUV7 pwr management");
-                    }
-                }
-            }
-}
+        if(queue.slave == SLAVE_PWR_MANAGEMENT){
+            processPowerManagement(queue.cmd, queue.data);
+        }    
+    }
 
     void PowerRS485::EnableDisableMotors(const std_msgs::msg::Bool &msg)
     {
         queueObject ser;
         ser.cmd = Cmd::CMD_ACT_MOTOR;
-        switch (esc_slave)
+        ser.slave = esc_slave;
+        ser.data.reserve(NB_THRUSTER);
+
+        uint8_t value = msg.data ? 1 : 0;
+
+        for (size_t i = 0; i < NB_THRUSTER; ++i)
         {
-            // AUV8 motor control
-            case SlaveId::SLAVE_PWR_MANAGEMENT:
-                ser.slave = esc_slave;
-                ToggleMotors(msg.data, NB_THRUSTER, ser.data);
-
-                sendMessage(ser);
-                break;
-            // AUV7 motor control
-            case SlaveId::SLAVE_ESC:
-                ser.slave = SlaveId::SLAVE_PSU0;
-                ser.data.clear();
-                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
-
-                sendMessage(ser);
-
-                ser.slave = SlaveId::SLAVE_PSU1;
-                ser.data.clear();
-                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
-
-                sendMessage(ser);
-
-                ser.slave = SlaveId::SLAVE_PSU2;
-                ser.data.clear();
-                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
-
-                sendMessage(ser);
-
-                ser.slave = SlaveId::SLAVE_PSU3;
-                ser.data.clear();
-                ToggleMotors(msg.data, NB_THRUSTER_BY_PSU_AUV7, ser.data);
-
-                sendMessage(ser);
-                break;
-            default:
-                break;
+            ser.data.push_back(value);
         }
-    }
-
-    void PowerRS485::ToggleMotors(const bool state, const uint8_t size, std::vector<uint8_t> &data)
-    {
-        if (state)
-        {
-            for (size_t i = 0; i < size; i++)
-            {
-                data.push_back(1);
-            }
-        }
-        else
-        {
-            for (size_t i = 0; i < size; i++)
-            {
-                data.push_back(0);
-            }
-        }
+        sendMessage(ser);
     }
 
     void PowerRS485::PwmCallback(const sonia_common_ros2::msg::MotorPwm &msg)
@@ -239,7 +80,7 @@ namespace rs485_port_manager{
         queueObject ser;
         ser.cmd = Cmd::CMD_PWM;
         ser.slave = esc_slave;
-        ser.data.clear();
+        ser.data.reserve(NB_THRUSTER*2);
         
         ser.data.push_back(msg.motor1 >> 8);
         ser.data.push_back(msg.motor1 & 0xFF);
@@ -318,9 +159,10 @@ namespace rs485_port_manager{
         }
     }
 
-    void PowerRS485::publishMotorFeedback(std::vector<uint8_t> data)
+    void PowerRS485::publishMotorFeedback(const std::vector<uint8_t> data)
     {
         sonia_common_ros2::msg::MotorFeedback msg;
+
         msg.motor1 = data[0];
         msg.motor2 = data[1];
         msg.motor3 = data[2];
@@ -329,6 +171,7 @@ namespace rs485_port_manager{
         msg.motor6 = data[5];
         msg.motor7 = data[6];
         msg.motor8 = data[7];
+
         _publisherMotorFeedback->publish(msg);
     }
 
@@ -396,93 +239,6 @@ namespace rs485_port_manager{
                 RCLCPP_WARN(this->get_logger(), "CMD Not identified");
                 break;
         }
-    }
-
-    void PowerRS485::processAUV7PowerManagement(const uint8_t cmd, std::vector<uint8_t> (&psu_data)[4]){
-        std::vector<float> motorData;
-        motorData.reserve(8);
-        float batteryData[2];
-        
-        if(checkNoEmptyVector(psu_data)){
-            switch(cmd){
-                case Cmd::CMD_VOLTAGE:
-                {
-                    std::vector<float> convertData[4];
-                    for(size_t i=0; i<4; i++){    
-                        convertData[i].reserve(psu_data[i].size()/4);
-                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
-                        {
-                            RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping VOLTAGE packet");
-                            return;
-                        }
-                    }
-                    //8 motor data
-                    motorData.push_back(convertData[0].at(0));
-                    motorData.push_back(convertData[1].at(0));
-                    motorData.push_back(convertData[2].at(0));
-                    motorData.push_back(convertData[3].at(0));
-                    motorData.push_back(convertData[0].at(1));
-                    motorData.push_back(convertData[1].at(1));
-                    motorData.push_back(convertData[2].at(1));
-                    motorData.push_back(convertData[3].at(1));
-            
-                    //2 batteries data
-                    batteryData[0]=(convertData[0].at(3)+convertData[1].at(3))/2;
-                    batteryData[1]=(convertData[2].at(3)+convertData[3].at(3))/2;
-                    //publish voltages
-                    publishMotorInfo(Cmd::CMD_VOLTAGE, motorData);
-                    publishBattery(Cmd::CMD_VOLTAGE, batteryData);
-                    break;
-                }
-                case Cmd::CMD_CURRENT:
-                {
-                    std::vector<float> convertData[4];
-                    for(size_t i=0; i<4; i++){    
-                        convertData[i].reserve(psu_data[i].size()/4);
-                        if (convertBytesToFloat(psu_data[i], convertData[i], psu_data[i].size()/4)<0)
-                        {
-                            RCLCPP_ERROR(this->get_logger(),  "ERROR in the message. Dropping CURRENT packet");
-                            return;
-                        }
-                    }
-                    //8 motor data
-                    motorData.push_back(convertData[0].at(0));
-                    motorData.push_back(convertData[1].at(0));
-                    motorData.push_back(convertData[2].at(0));
-                    motorData.push_back(convertData[3].at(0));
-                    motorData.push_back(convertData[0].at(1));
-                    motorData.push_back(convertData[1].at(1));
-                    motorData.push_back(convertData[2].at(1));
-                    motorData.push_back(convertData[3].at(1));
-            
-                    //2 batteries data
-                    batteryData[0]=(convertData[0].at(2)+convertData[1].at(2))/2;
-                    batteryData[1]=(convertData[2].at(2)+convertData[3].at(2))/2;
-                    //publish currents
-                    publishMotorInfo(Cmd::CMD_CURRENT, motorData);
-                    publishBattery(Cmd::CMD_CURRENT, batteryData);
-                    break;
-                }
-                case Cmd::CMD_READ_MOTOR:
-                {
-                    std::vector<uint8_t> motor_feedback;
-                    motor_feedback.push_back(psu_data[0].at(0));
-                    motor_feedback.push_back(psu_data[1].at(1));
-                    motor_feedback.push_back(psu_data[2].at(0));
-                    motor_feedback.push_back(psu_data[3].at(1));
-                    motor_feedback.push_back(psu_data[0].at(0));
-                    motor_feedback.push_back(psu_data[1].at(1));
-                    motor_feedback.push_back(psu_data[2].at(0));
-                    motor_feedback.push_back(psu_data[3].at(1));
-                    //motor feedback publish
-                    publishMotorFeedback(motor_feedback);
-                    break;
-                }
-                default:{
-                    RCLCPP_ERROR(this->get_logger(), "ERROR Unkown CMD for PWR management");
-                }
-            } 
-        } 
     }
 
     int PowerRS485::convertBytesToFloat(const std::vector<uint8_t> &req, std::vector<float> &res, const size_t size)

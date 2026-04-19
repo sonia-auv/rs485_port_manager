@@ -41,6 +41,7 @@ The project opens up a serial connection to allow the onboard computer to commun
 | --------------------- | -------------------------------- | ----------------| --------------------------------------- | ---------------------------------- |
 | Topic                 | `/provider_rs485/mission_status` | Published       | `sonia_common_ros2/msg/KillStatus`      | The status of the mission switch   |
 | Topic                 | `/provider_rs485/kill_status`    | Published       | `sonia_common_ros2/msg/MissionStatus`   | The status of the kill switch      |
+| Topic                 | `/system_monitor/node_status`    | Published       | `sonia_common_ros2/msg/NodeStatus`      | Message contains information of the state of a node|
 
 ### Power
 
@@ -80,7 +81,7 @@ Required environment variables to launch the project
 ```bash
 export AUV={prototype_identifier}
 ```
-replace `{prototype_identifier}` with available options: `AUV8` | `AUV7` | `LITE1` | `LOCAL`.
+replace `{prototype_identifier}` with available options: `AUV8` | `LITE1` | `LOCAL`.
 
 ### Default launch
 
