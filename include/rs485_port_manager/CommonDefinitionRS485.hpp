@@ -33,15 +33,11 @@ namespace rs485_port_manager
      */
     enum SlaveId : uint8_t
     {
-        SLAVE_PSU0 = 0,  // AUV7 Only
-        SLAVE_PSU1 = 1,  // AUV7 Only
-        SLAVE_PSU2 = 2,  // AUV7 Only
-        SLAVE_PSU3 = 3,  // AUV7 Only
         SLAVE_KILLMISSION = 4,
         SLAVE_ESC = 5,
         SLAVE_IO = 6,
         SLAVE_STATE_SCREEN = 7,
-        SLAVE_PWR_MANAGEMENT = 8,  // AUV8 Only
+        SLAVE_PWR_MANAGEMENT = 8, 
     };
 
     /**

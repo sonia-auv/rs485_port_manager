@@ -36,6 +36,6 @@ namespace rs485_port_manager
 
     void LedRS485::messageRS485CallBack(queueObject queue)
     {
-
+        
     }
 }
