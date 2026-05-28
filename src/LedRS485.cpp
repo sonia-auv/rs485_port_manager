@@ -7,26 +7,31 @@ using std::placeholders::_2;
 
 namespace rs485_port_manager
 {
-    LedRS485::LedRS485(): Node("rs485_com")
+    LedRS485::LedRS485(): Node("provider_com")
     {
-        _publisherLed = this->create_publisher<std_msgs::msg::Bool>("/provider_rs485/led_status", 10);
-
-        _timerLedState= this->create_wall_timer(500ms, std::bind(&LedRS485::pollLedState, this));
-
+        _subscriptionLed = this->create_subscription<std_msgs::msg::Bool>("/provider_com/enable_led", 1, std::bind(&LedRS485::toggleLeds, this, _1));
     }
-    void LedRS485::pollLedState()
+    void LedRS485::toggleLeds(const std_msgs::msg::Bool msg)
     {
-        queueObject msg;
-        // dummy data to create a valid message, 
-        // the data was not read when you get the status
-        msg.data.push_back(0x00);
+        queueObject led;
 
-        // Transmit request to get kill status
-        //msg.slave = 0;
-        //msg.cmd = 0;
+        led.slave = SlaveId::SLAVE_PWR_MANAGEMENT;
+        led.cmd = 1;
+
+        if(msg.data)
+        { //green color for testing
+            led.data.push_back(170);
+            led.data.push_back(255);
+            led.data.push_back(0);
+        }
+        else
+        {
+            led.data.push_back(0);
+            led.data.push_back(0);
+            led.data.push_back(0);
+        }
         
-        sendMessage(msg);
-
+        sendMessage(led);
     }
 
     void LedRS485::sendMessage(queueObject queue)

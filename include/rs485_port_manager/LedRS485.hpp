@@ -33,10 +33,10 @@ namespace rs485_port_manager
         private:
             RS485Driver *rs485;
 
-            void pollLedState();
+            void toggleLeds(const std_msgs::msg::Bool msg);
 
             rclcpp::TimerBase::SharedPtr _timerLedState;
-            rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _publisherLed;
+            rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriptionLed;
 
     };
 } //namespace rs485_port_manager
