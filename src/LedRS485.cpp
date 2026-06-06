@@ -15,8 +15,8 @@ namespace rs485_port_manager
     {
         queueObject led;
 
-        led.slave = SlaveId::SLAVE_PWR_MANAGEMENT;
-        led.cmd = 1;
+        led.slave = SlaveId::SLAVE_LED;
+        led.cmd = CMD_LED_ON;
 
         if(msg.data)
         { //green color for testing
