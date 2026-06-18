@@ -16,19 +16,23 @@ namespace rs485_port_manager
         queueObject led;
 
         led.slave = SlaveId::SLAVE_LED;
-        led.cmd = CMD_LED_ON;
 
         if(msg.data)
         { //green color for testing
-            led.data.push_back(170);
-            led.data.push_back(255);
-            led.data.push_back(0);
+
+            for(size_t i = 0; i<30; i++){
+                led.data.push_back(170);
+                led.data.push_back(255);
+                led.data.push_back(0);
+            }   
         }
         else
         {
-            led.data.push_back(0);
-            led.data.push_back(0);
-            led.data.push_back(0);
+            for(size_t i = 0; i<30; i++){
+                led.data.push_back(0);
+                led.data.push_back(0);
+                led.data.push_back(0);
+            } 
         }
         
         sendMessage(led);

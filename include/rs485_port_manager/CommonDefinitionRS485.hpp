@@ -61,8 +61,5 @@ namespace rs485_port_manager
         CMD_IO_ARM_ACTION = 3,
         CMD_IO_LEAK_SENSOR = 4,
         CMD_KEEP_ALIVE = 30,
-        CMD_LED_OFF = 0,
-        CMD_LED_ON = 1,
-        CMD_LED_BLINK = 2,
     };
 }

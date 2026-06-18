@@ -34,7 +34,7 @@ namespace rs485_port_manager
             RS485Driver *rs485;
 
             void toggleLeds(const std_msgs::msg::Bool msg);
-
+            
             rclcpp::TimerBase::SharedPtr _timerLedState;
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _subscriptionLed;
 
