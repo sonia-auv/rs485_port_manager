@@ -10,6 +10,7 @@ namespace rs485_port_manager
     LedRS485::LedRS485(): Node("provider_com")
     {
         _subscriptionLed = this->create_subscription<std_msgs::msg::Bool>("/provider_com/enable_led", 1, std::bind(&LedRS485::toggleLeds, this, _1));
+        rs485 = RS485Driver::GetInstance();
     }
     void LedRS485::toggleLeds(const std_msgs::msg::Bool msg)
     {
